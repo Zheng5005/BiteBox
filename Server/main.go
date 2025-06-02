@@ -5,18 +5,21 @@ import (
 	"net/http"
 	"github.com/Zheng5005/BiteBox/db"
 	"github.com/Zheng5005/BiteBox/handlers/users"
+	"github.com/Zheng5005/BiteBox/middlewares"
 )
 
 func main() {
 	db.InitDB()
 
-	http.HandleFunc("/api/ping", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Pong!"))
-	})
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/api/users", users.GetUsers)
+	// Users routes
+	mux.HandleFunc("/api/users", users.GetUsers)
+
+	// CORS
+	handlerWithCORS := middleware.CorsMiddleware(mux)
 
 	log.Println("Server running at http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", handlerWithCORS))
 }
 
