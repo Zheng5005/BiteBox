@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"github.com/Zheng5005/BiteBox/db"
 	"github.com/Zheng5005/BiteBox/handlers/users"
+	"github.com/Zheng5005/BiteBox/handlers/recipes"
 	"github.com/Zheng5005/BiteBox/middlewares"
 )
 
@@ -15,6 +16,9 @@ func main() {
 
 	// Users routes
 	mux.HandleFunc("/api/users", users.GetUsers)
+
+	// Recipes routes
+	mux.HandleFunc("/api/recipes", recipes.GetRecipes)
 
 	// CORS
 	handlerWithCORS := middleware.CorsMiddleware(mux)
