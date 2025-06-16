@@ -18,7 +18,7 @@ func main() {
 	mux.HandleFunc("/api/users", users.GetUsers)
 
 	// Recipes routes
-	mux.HandleFunc("/api/recipes", recipes.GetRecipes)
+	mux.HandleFunc("/api/recipes", recipes.RecipeHandler)
 
 	// CORS
 	handlerWithCORS := middleware.CorsMiddleware(mux)
