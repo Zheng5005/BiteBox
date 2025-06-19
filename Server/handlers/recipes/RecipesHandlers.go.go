@@ -1,38 +1,19 @@
 package recipes
 
 import (
+	"database/sql"
 	"encoding/json"
+	"log"
 	"net/http"
+	"strings"
 
 	"github.com/Zheng5005/BiteBox/db"
 )
 
-type Recipe struct {
-	ID   string `json:"id"`
-	UserID string `json:"user_id"`
-	Name string `json:"name_recipe"`
-	Description string `json:"description"`
-	MealTypeID string `json:"meal_type_id"`
-	ImgURL string `json:"img_url"`
-	GuestName string `json:"guest_name"`
-
-	Rating string `json:"rating"`
-}
-
-type RecipesMainPage struct {
-	ID   string `json:"id"`
-	Name string `json:"name_recipe"`
-	Description string `json:"description"`
-	MealTypeID string `json:"meal_type_id"`
-	ImgURL string `json:"img_url"`
-
-	Rating string `json:"rating"`
-}
-
 func RecipeHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 		case http.MethodGet:
-			rows, err := db.DB.Query("SELECT r.id, r.name_recipe, r.description, r.meal_type_id, AVG(c.rating) FROM recipes r JOIN comments c ON r.id = c.recipe_id GROUP BY r.id")
+		rows, err := db.DB.Query("SELECT r.id, r.name_recipe, r.description, r.meal_type_id, COALESCE(AVG(c.rating), 0) AS avg FROM recipes r LEFT JOIN comments c ON r.id = c.recipe_id GROUP BY r.id")
 			if err != nil {
 				http.Error(w, "Query error", http.StatusInternalServerError)
 				return
@@ -50,9 +31,64 @@ func RecipeHandler(w http.ResponseWriter, r *http.Request) {
 				recipes = append(recipes, r)
 			}
 
+			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(recipes)
 		case http.MethodPost:
 			
 	}
 }
 
+func RecipeONEHandler(w http.ResponseWriter, r *http.Request){
+	id := strings.TrimPrefix(r.URL.Path, "/api/recipes/")
+	if id == "" {
+		http.Error(w, "Missing recipe ID", http.StatusBadRequest)
+		return
+	}
+
+	switch r.Method{
+		case http.MethodGet:
+			query := `
+				SELECT 
+					r.id,
+					r.name_recipe,
+					r.description,
+					r.meal_type_id,
+					COALESCE(r.img_url, ''),
+					COALESCE(u.name, r.guest_name) AS creator_name,
+					COALESCE(AVG(c.rating), 0) AS avg_rating
+				FROM recipes r
+				LEFT JOIN users u ON u.id = r.user_id
+				LEFT JOIN comments c ON c.recipe_id = r.id
+				WHERE r.id = $1
+				GROUP BY r.id, u.name, r.guest_name;
+			`
+
+			var recipe RecipeDetail
+			
+			err := db.DB.QueryRow(query, id).Scan(
+				&recipe.ID,
+				&recipe.Name,
+				&recipe.Description,
+				&recipe.MealTypeID,
+				&recipe.ImgURL,
+				&recipe.CreatorName,
+				&recipe.Rating,
+			)
+
+			if err == sql.ErrNoRows {
+				http.Error(w, "Recipe not found", http.StatusNotFound)
+				return
+			} else if err != nil {
+				log.Println("Scan error:", err)
+				http.Error(w, "Error retrieving recipe", http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(recipe)
+		case http.MethodPatch:
+			//logic SHOULD RECIVE A TOKEN
+		case http.MethodDelete:
+			//logic SHOULD RECIVE A TOKEN
+	}
+}

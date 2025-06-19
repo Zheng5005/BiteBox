@@ -1,4 +1,4 @@
-package users
+package meals
 
 import (
 	"encoding/json"
@@ -7,30 +7,30 @@ import (
 	"github.com/Zheng5005/BiteBox/db"
 )
 
-type User struct {
+type MealsType struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
-func GetUsers(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.DB.Query("SELECT id, name FROM users")
+func MealsHandler(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.DB.Query("SELECT id, name FROM meal_type")
 	if err != nil {
 		http.Error(w, "Query error", http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	var users []User
+	var meals []MealsType
 
 	for rows.Next() {
-		var u User
-		if err := rows.Scan(&u.ID, &u.Name); err != nil {
+		var m MealsType
+		if err := rows.Scan(&m.ID, &m.Name); err != nil {
 			http.Error(w, "Scan error", http.StatusInternalServerError)
 			return
 		}
-		users = append(users, u)
+		meals = append(meals, m)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(users)
+	json.NewEncoder(w).Encode(meals)
 }
