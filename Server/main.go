@@ -3,10 +3,12 @@ package main
 import (
 	"log"
 	"net/http"
+
 	"github.com/Zheng5005/BiteBox/db"
-	"github.com/Zheng5005/BiteBox/handlers/users"
-	"github.com/Zheng5005/BiteBox/handlers/recipes"
 	"github.com/Zheng5005/BiteBox/handlers/meals"
+	"github.com/Zheng5005/BiteBox/handlers/recipes"
+	"github.com/Zheng5005/BiteBox/handlers/comments"
+	"github.com/Zheng5005/BiteBox/handlers/users"
 	"github.com/Zheng5005/BiteBox/middlewares"
 )
 
@@ -21,6 +23,9 @@ func main() {
 	// Recipes routes
 	mux.HandleFunc("/api/recipes", recipes.RecipeHandler)
 	mux.HandleFunc("/api/recipes/", recipes.RecipeONEHandler)
+
+	// Comments routes
+	mux.HandleFunc("/api/comments/", comments.CommentsHandler)
 
 	// Meals routes
 	mux.HandleFunc("/api/mealtypes", meals.MealsHandler)
