@@ -3,6 +3,7 @@ package users
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/Zheng5005/BiteBox/db"
 )
@@ -10,10 +11,20 @@ import (
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+	Email string `json:"email"`
+	Password string `json:"password"`
+	URLPhoto string `json:"url_photo"`
+	GoogleID string `json:"google_id"`
 }
 
-func GetUsers(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.DB.Query("SELECT id, name FROM users")
+func GetUserInfo(w http.ResponseWriter, r *http.Request) {
+	id := strings.TrimPrefix(r.URL.Path, "/api/users/")
+	if id == "" {
+		http.Error(w, "Missing user ID", http.StatusBadRequest)
+		return
+	}
+
+	rows, err := db.DB.Query("SELECT name, email FROM users WHERE id = $1", id)
 	if err != nil {
 		http.Error(w, "Query error", http.StatusInternalServerError)
 		return
@@ -24,7 +35,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var u User
-		if err := rows.Scan(&u.ID, &u.Name); err != nil {
+		if err := rows.Scan(&u.Name, &u.Email); err != nil {
 			http.Error(w, "Scan error", http.StatusInternalServerError)
 			return
 		}

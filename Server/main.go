@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Zheng5005/BiteBox/db"
+	"github.com/Zheng5005/BiteBox/handlers/auth"
 	"github.com/Zheng5005/BiteBox/handlers/meals"
 	"github.com/Zheng5005/BiteBox/handlers/recipes"
 	"github.com/Zheng5005/BiteBox/handlers/comments"
@@ -17,8 +18,12 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	// Auth routes
+	mux.HandleFunc("/api/auth/signup", auth.SignUpHandler)
+	mux.HandleFunc("/api/auth/login", auth.LoginHandler)
+
 	// Users routes
-	mux.HandleFunc("/api/users", users.GetUsers)
+	mux.HandleFunc("/api/users/", middleware.JWTMiddleware(users.GetUserInfo))
 
 	// Recipes routes
 	mux.HandleFunc("/api/recipes", recipes.RecipeHandler)
