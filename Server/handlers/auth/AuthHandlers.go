@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Zheng5005/BiteBox/db"
+	"github.com/Zheng5005/BiteBox/lib"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
@@ -28,26 +29,54 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var input struct {
-		Name string `json:"name"`
-		Email string `json:"email"`
-		Password string `json:"password"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid body", http.StatusBadRequest)
+	// Parse form data (10MB max for uploaded file)
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	name := r.FormValue("name")
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+
+	if name == "" || email == "" || password == "" {
+		http.Error(w, "Missing required fields", http.StatusBadRequest)
+		return
+	}
+
+	//Upload image to Cloudinary
+	file, fileHeader, err := r.FormFile("image")
+	var imageURL string
+
+	if err == nil {
+		defer file.Close()
+
+		// Assume you have a cloudinary uploader function
+		imageURL, err = lib.UploadToCloudinary(file, fileHeader.Filename)
+		if err != nil {
+			http.Error(w, "Error uploading image", http.StatusInternalServerError)
+			return
+		}
+	} else if err != http.ErrMissingFile {
+		http.Error(w, "Error reading file", http.StatusBadRequest)
+		return
+	}
+
+	//Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		http.Error(w, "Error hashing password", http.StatusInternalServerError)
 		return
 	}
-	
-	_, err = db.DB.Exec("INSERT INTO users (name, email, password) VALUES ($1, $2, $3)", input.Name, input.Email, hashedPassword)
+
+	//Save user to DB
+	_, err = db.DB.Exec(
+		"INSERT INTO users (name, email, password, url_photo) VALUES ($1, $2, $3, $4)",
+		name, email, hashedPassword, imageURL,
+	)
+
 	if err != nil {
-		log.Println(err)
+		log.Panicln(err)
 		http.Error(w, "Error creating user", http.StatusInternalServerError)
 		return
 	}
