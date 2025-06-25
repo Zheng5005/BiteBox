@@ -101,8 +101,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
-	var userID, hashedPassword string
-	err := db.DB.QueryRow("SELECT id, password FROM users WHERE email = $1", input.Email).Scan(&userID, &hashedPassword)
+	var userID, hashedPassword, name, url_photo string
+	err := db.DB.QueryRow("SELECT id, password, name, COALESCE(url_photo, '') FROM users WHERE email = $1", input.Email).Scan(&userID, &hashedPassword, &name, &url_photo)
 	if err != nil {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
@@ -114,6 +114,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request)  {
 	}
 	 token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": userID,
+		"name": name,
+		"url_photo": url_photo,
 		"exp": time.Now().Add(24 * time.Hour).Unix(),
 	})
 

@@ -55,7 +55,8 @@ func RecipeONEHandler(w http.ResponseWriter, r *http.Request){
 					r.meal_type_id,
 					COALESCE(r.img_url, ''),
 					COALESCE(u.name, r.guest_name) AS creator_name,
-					COALESCE(AVG(c.rating), 0) AS avg_rating
+					COALESCE(AVG(c.rating), 0) AS avg_rating,
+					r.steps
 				FROM recipes r
 				LEFT JOIN users u ON u.id = r.user_id
 				LEFT JOIN comments c ON c.recipe_id = r.id
@@ -73,6 +74,7 @@ func RecipeONEHandler(w http.ResponseWriter, r *http.Request){
 				&recipe.ImgURL,
 				&recipe.CreatorName,
 				&recipe.Rating,
+				&recipe.Steps,
 			)
 
 			if err == sql.ErrNoRows {

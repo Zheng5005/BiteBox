@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Link } from "react-router";
 
 const Login: React.FC = () => {
   const [form, setForm] = useState({
@@ -39,7 +40,11 @@ const Login: React.FC = () => {
 
       // Obtener info del user
       
-      // Redirigir según el rol
+      
+      //refresing the page
+      setTimeout(() => {
+        window.location.href = "/"
+      }, 500)
     } catch (error) {
       setInfo({...info, error: String(error)})
       console.log(error)
@@ -109,9 +114,9 @@ const Login: React.FC = () => {
 
           <p className="mt-10 text-center text-sm/6 text-gray-500">
             You don't have an account? 
-            <a href="#" className="font-semibold text-indigo-600 hover:text-indigo-500">
+            <Link to="/signup" className="font-semibold text-indigo-600 hover:text-indigo-500">
               Sign Up
-            </a>
+            </Link>
           </p>
         </div>
       </div>

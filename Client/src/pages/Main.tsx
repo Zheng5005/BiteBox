@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router';
 
 interface Recipe {
   id: number;
@@ -75,7 +76,8 @@ const MainPage: React.FC = () => {
       <div className="grid gap-6">
         {filteredRecipes.map((recipe: Recipe) => (
           //this should be a Link
-          <div
+          <Link
+            to={`/details/${recipe.id}`}
             key={recipe.id}
             className="bg-white shadow-md rounded-2xl overflow-hidden grid grid-cols-1 md:grid-cols-3"
           >
@@ -92,7 +94,7 @@ const MainPage: React.FC = () => {
               </div>
               <p className="text-gray-600">{recipe.description}</p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

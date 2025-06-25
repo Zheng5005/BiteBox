@@ -33,4 +33,5 @@ type RecipeDetail struct {
 	ImgURL      string `json:"img_url"`
 	CreatorName string `json:"creator_name"`
 	Rating      string `json:"rating"`
+	Steps       string `json:"steps"`
 }

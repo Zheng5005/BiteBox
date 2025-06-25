@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
-
-interface User {
-  name: string;
-  avatarUrl: string;
-}
+import { Link } from 'react-router';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null); // Simulate auth
+  const { user, logout } = useAuth();
   const [lang, setLang] = useState<'en' | 'es'>('en');
 
   const toggleLanguage = () => {
@@ -19,12 +16,12 @@ const Navbar: React.FC = () => {
         {/* Left links */}
         <div className="flex items-center gap-6">
           { /* any <a> tag should be replace by a Link component */}
-          <a href="/recipes" className="text-lg font-medium hover:text-blue-600 transition">
+          <Link to="/" className="text-lg font-medium hover:text-blue-600 transition">
             Recipes
-          </a>
-          <a href="/post" className="text-lg font-medium hover:text-blue-600 transition">
+          </Link>
+          <Link to="/post" className="text-lg font-medium hover:text-blue-600 transition">
             Post
-          </a>
+          </Link>
         </div>
 
         {/* Right controls */}
@@ -39,20 +36,25 @@ const Navbar: React.FC = () => {
 
           {user ? (
             // If user is authenticated
-            <img
-              src={user.avatarUrl}
-              alt="User avatar"
-              className="w-9 h-9 rounded-full object-cover border"
-            />
+            <>
+              <img
+                src={user.url_photo}
+                alt="User"
+                className="w-10 h-10 rounded-full object-cover border"
+              />
+              <button onClick={logout} className="px-3 py-1 text-sm text-red-600 border border-red-600 rounded-md hover:bg-red-50 transition">
+                  Logout
+              </button>
+            </>
           ) : (
             // If no user is logged in
             <>
-              <button className="px-3 py-1 text-sm text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition">
-                Login
-              </button>
-              <button className="px-3 py-1 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">
+              <Link to="/login" className="px-3 py-1 text-sm text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition">
+                  Login
+              </Link>
+              <Link to="/signup" className="px-3 py-1 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">
                 Register
-              </button>
+              </Link>
             </>
           )}
         </div>
