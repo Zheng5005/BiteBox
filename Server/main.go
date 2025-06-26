@@ -31,6 +31,7 @@ func main() {
 
 	// Comments routes
 	mux.HandleFunc("/api/comments/", comments.CommentsHandler)
+	mux.HandleFunc("/api/comments/post/", middleware.JWTMiddleware(comments.PostComment))
 
 	// Meals routes
 	mux.HandleFunc("/api/mealtypes", meals.MealsHandler)
