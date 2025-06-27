@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 interface Recipe {
   id: number;
-  recipe_name: string;
+  name_recipe: string;
   description: string;
   meal_type_id: string;
   image: string;
@@ -24,6 +24,7 @@ interface Comment {
 const RecipeDetails: React.FC = () => {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [activeTab, setActiveTab] = useState<string>("comments")
   const [newComment, setNewComment] = useState({
     comment: "",
     rating: 1
@@ -86,6 +87,9 @@ const RecipeDetails: React.FC = () => {
     } else {
       setComments([])
     }
+
+    //optional, show comments inmediatly, but maybe it would be too slow in production
+    //setActiveTab("comments")
   };
 
   if (!recipe) return <p className="text-center">Loading recipe...</p>;
@@ -94,14 +98,14 @@ const RecipeDetails: React.FC = () => {
     <div className="max-w-4xl mx-auto p-6 font-sans space-y-8">
       {/* Recipe info */}
       <div className="space-y-4">
-        <h1 className="text-3xl font-bold">{recipe.recipe_name}</h1>
+        <h1 className="text-3xl font-bold">{recipe.name_recipe}</h1>
         <p className="text-sm text-gray-600">
           By: {recipe.creator_name ?? 'Anonymous'}
         </p>
         <img
           src="https://i.pravatar.cc/150?u=a042581f4e29026024d"
           //src={recipe.image}
-          alt={recipe.recipe_name}
+          alt={recipe.name_recipe}
           className="w-full max-h-96 object-cover rounded-lg shadow"
         />
         {recipe.rating == 0 ? (
@@ -116,26 +120,47 @@ const RecipeDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Comments */}
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold">Comments</h2>
-        {comments.length === 0 ? (
-          <p className="text-gray-500">No comments yet</p>
-        ) : (
-          <ul className="space-y-3">
-            {comments.map((comment) => (
-              <li key={comment.id} className="border-b pb-2">
-                <p className="font-semibold">{comment.user_name}</p>
-                <p className="text-gray-700">{comment.comment}</p>
-                <span className="text-yellow-500 text-lg">⭐ {comment.rating}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+      {/* Tabs */}
+      <div className='mt-8 w-full'>
+        <div className='mt-6 flex justify-center border-b w-full'>
+          <button className={`px-4 py-2 font-semibold border-b-2 transition ${
+            activeTab === 'comments' ? "text-green-400 border-green-600" : "text-gray-600"
+          }`}
+          onClick={() => setActiveTab("comments")}>
+            Comments
+          </button>
+          {user && (
+            <button
+              className={`px-4 py-2 ml-4 font-semibold border-b-2 transition ${
+                activeTab === "view" ? "text-green-400 border-green-600" : "text-gray-600"
+              }`}
+              onClick={() => setActiveTab("view")}>
+              Leave a comment
+            </button>
+          )}
+        </div>
       </div>
+      
 
-      {/* Comment Form */}
-      { user && (
+      {/* Comments */}
+      {activeTab === "comments" ? (
+        <div className="space-y-4">
+          {comments.length === 0 ? (
+            <p className="text-gray-500">No comments yet</p>
+          ) : (
+            <ul className="space-y-3">
+              {comments.map((comment) => (
+                <li key={comment.id} className="border-b pb-2">
+                  <p className="font-semibold">{comment.user_name}</p>
+                  <p className="text-gray-700">{comment.comment}</p>
+                  <span className="text-yellow-500 text-lg">⭐ {comment.rating}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : (
+      // Form to leave a comment
         <form onSubmit={handleCommentSubmit} className="space-y-4">
           <h3 className="text-xl font-semibold">Leave a Comment</h3>
           <textarea

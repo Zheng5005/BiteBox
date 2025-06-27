@@ -44,53 +44,54 @@ func RecipeONEHandler(w http.ResponseWriter, r *http.Request){
 		http.Error(w, "Missing recipe ID", http.StatusBadRequest)
 		return
 	}
-
-	switch r.Method{
-		case http.MethodGet:
-			query := `
-				SELECT 
-					r.id,
-					r.name_recipe,
-					r.description,
-					r.meal_type_id,
-					COALESCE(r.img_url, ''),
-					COALESCE(u.name, r.guest_name) AS creator_name,
-					COALESCE(ROUND(AVG(c.rating), 2), 0) AS avg_rating,
-					r.steps
-				FROM recipes r
-				LEFT JOIN users u ON u.id = r.user_id
-				LEFT JOIN comments c ON c.recipe_id = r.id
-				WHERE r.id = $1
-				GROUP BY r.id, u.name, r.guest_name;
-			`
-
-			var recipe RecipeDetail
 			
-			err := db.DB.QueryRow(query, id).Scan(
-				&recipe.ID,
-				&recipe.Name,
-				&recipe.Description,
-				&recipe.MealTypeID,
-				&recipe.ImgURL,
-				&recipe.CreatorName,
-				&recipe.Rating,
-				&recipe.Steps,
-			)
+	query := `
+			SELECT 
+				r.id,
+				r.name_recipe,
+				r.description,
+				r.meal_type_id,
+				COALESCE(r.img_url, ''),
+				COALESCE(u.name, r.guest_name) AS creator_name,
+				COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg_rating,
+				r.steps
+			FROM recipes r
+			LEFT JOIN users u ON u.id = r.user_id
+			LEFT JOIN comments c ON c.recipe_id = r.id
+			WHERE r.id = $1
+			GROUP BY r.id, u.name, r.guest_name;
+		`
 
-			if err == sql.ErrNoRows {
-				http.Error(w, "Recipe not found", http.StatusNotFound)
-				return
-			} else if err != nil {
-				log.Println("Scan error:", err)
-				http.Error(w, "Error retrieving recipe", http.StatusInternalServerError)
-				return
-			}
+		var recipe RecipeDetail
+			
+		err := db.DB.QueryRow(query, id).Scan(
+			&recipe.ID,
+			&recipe.Name,
+			&recipe.Description,
+			&recipe.MealTypeID,
+			&recipe.ImgURL,
+			&recipe.CreatorName,
+			&recipe.Rating,
+			&recipe.Steps,
+		)
 
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(recipe)
-		case http.MethodPatch:
-			//logic SHOULD RECIVE A TOKEN
-		case http.MethodDelete:
-			//logic SHOULD RECIVE A TOKEN
-	}
+		if err == sql.ErrNoRows {
+			http.Error(w, "Recipe not found", http.StatusNotFound)
+			return
+		} else if err != nil {
+			log.Println("Scan error:", err)
+			http.Error(w, "Error retrieving recipe", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(recipe)
+}
+
+func PostRecipeGuest(w http.ResponseWriter, r *http.Request)  {
+	
+}
+
+func PostRecipeUser(w http.ResponseWriter, r *http.Request)  {
+	
 }
