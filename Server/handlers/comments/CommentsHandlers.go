@@ -5,29 +5,25 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
-	"github.com/Zheng5005/BiteBox/db"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type Comment struct {
-	ID   string `json:"id"`
-	UserID string `json:"user_name"`
-	RecipeID string `json:"recipe_id"`
-	Comment string `json:"comment"`
-	Rating string `json:"rating"`
-}
+func (h *CommentHandler) CommentsHandler(w http.ResponseWriter, r *http.Request)  {
+	// Method check
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
-func CommentsHandler(w http.ResponseWriter, r *http.Request)  {
 	id := strings.TrimPrefix(r.URL.Path, "/api/comments/")
 	if id == "" {
 		http.Error(w, "Missing recipe ID", http.StatusBadRequest)
 		return
 	}
 
-	rows, err := db.DB.Query("SELECT c.id, u.name, c.recipe_id, c.comment, c.rating FROM comments c JOIN users u ON u.id = c.user_id WHERE recipe_id = $1", id) 	
+	rows, err := h.DB.Query("SELECT c.id, u.name, c.recipe_id, c.comment, c.rating FROM comments c JOIN users u ON u.id = c.user_id WHERE recipe_id = $1", id) 	
 	if err != nil {
 		http.Error(w, "Query error", http.StatusInternalServerError)
 	}
@@ -48,7 +44,7 @@ func CommentsHandler(w http.ResponseWriter, r *http.Request)  {
 	json.NewEncoder(w).Encode(comments)
 }
 
-func PostComment(w http.ResponseWriter, r *http.Request) {
+func (h *CommentHandler) PostComment(w http.ResponseWriter, r *http.Request)  {
 	// Method check
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not Allowed", http.StatusMethodNotAllowed)
@@ -62,7 +58,6 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Token validation
 	auth := r.Header.Get("Authorization")
 	if !strings.HasPrefix(auth, "Bearer ") {
 		http.Error(w, "Missing token", http.StatusUnauthorized)
@@ -74,7 +69,7 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Invalid method")
 		}
-		return []byte(getEnv("SECRET_KEY", "other_key")), nil
+		return []byte(h.SecretKey), nil
 	})
 
 	if err != nil || !token.Valid {
@@ -82,7 +77,6 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract user_id from token
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		http.Error(w, "Invalid token claims", http.StatusUnauthorized)
@@ -91,7 +85,7 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 
 	userID, ok := claims["user_id"].(string)
 	if !ok {
-		http.Error(w, "Invalid or missing usr ID in token", http.StatusUnauthorized)
+		http.Error(w, "Missing user ID in token", http.StatusUnauthorized)
 		return
 	}
 
@@ -106,8 +100,10 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Insert comment into DB
-	_, err = db.DB.Exec("INSERT INTO comments (user_id, recipe_id, comment, rating) VALUES ($1, $2, $3, $4)", userID, id, input.Comment, input.Rating)
+	_, err = h.DB.Exec(
+		"INSERT INTO comments (user_id, recipe_id, comment, rating) VALUES ($1, $2, $3, $4)",
+		userID, id, input.Comment, input.Rating,
+	)
 	if err != nil {
 		log.Println("DB error", err)
 		http.Error(w, "Error creating a comment", http.StatusInternalServerError)
@@ -116,11 +112,4 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Comment created"))
-}
-
-func getEnv(key, fallback string) string {
-	if value, exists := os.LookupEnv(key); exists {
-		return value
-	}
-	return fallback
 }

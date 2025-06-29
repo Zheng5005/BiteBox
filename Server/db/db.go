@@ -11,6 +11,12 @@ import (
 )
 
 var DB *sql.DB
+ 
+// DBExecutor allows injecting a mock DB or sql.DB
+type DBExecutor interface {
+	Exec(query string, args ...any) (sql.Result, error)
+	Query(query string, args ...any) (*sql.Rows, error)
+}
 
 func InitDB() {
 	errENV := godotenv.Load()

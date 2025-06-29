@@ -13,7 +13,16 @@ import (
 func RecipeHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 		case http.MethodGet:
-		rows, err := db.DB.Query("SELECT r.id, r.name_recipe, r.description, r.meal_type_id, COALESCE(AVG(c.rating), 0) AS avg FROM recipes r LEFT JOIN comments c ON r.id = c.recipe_id GROUP BY r.id")
+		rows, err := db.DB.Query(`
+			SELECT 
+				r.id, 
+				r.name_recipe, 
+				r.description, 
+				r.meal_type_id, 
+				COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg 
+			FROM recipes r 
+			LEFT JOIN comments c ON r.id = c.recipe_id 
+			GROUP BY r.id`)
 			if err != nil {
 				http.Error(w, "Query error", http.StatusInternalServerError)
 				return
