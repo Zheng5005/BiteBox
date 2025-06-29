@@ -7,10 +7,9 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/Zheng5005/BiteBox/utils"
 )
 
 func TestPostComment_Success(t *testing.T) {
@@ -40,7 +39,11 @@ func TestPostComment_Success(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Attaching a valid mock jwt
-	token := generateMockJWT(t, "user-abc")
+	token, err := utils.GenerateMockJWT("user-abc", "other_key")
+	if err != nil {
+		t.Fatalf("Failed to generate mock JWT: %v", err)
+	}
+
 	req.Header.Set("Authorization", "Bearer "+token)
 
 	//Preparing a response recorder
@@ -110,18 +113,8 @@ func TestGetComment_Success(t *testing.T) {
 	}
 }
 
-func generateMockJWT(t *testing.T, userID string) string {
-	secret := []byte("other_key") // Using the same fallback as the handler
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256,  jwt.MapClaims{
-		"user_id": userID,
-		"exp": time.Now().Add(time.Hour).Unix(),
-	})
-
-	tokenString, err := token.SignedString(secret)
-	if err != nil {
-		t.Fatalf("Failed to sign token: %v", err)
-	}
-
-	return tokenString
-}
+// ToDo: Making a test for a request without a token = Both?
+// ToDo: Making a test for a request wit a bad token = Post
+// ToDo: Making a test for a request with a bad method = Both?
+// ToDo: Making a test for a request without an id = Both?
+// ToDo: Making a test for a request with a bad body = Post

@@ -1,5 +1,7 @@
 package recipes
 
+import "github.com/Zheng5005/BiteBox/db"
+
 // This type is for POST and PATCH?
 type Recipe struct {
 	ID   string `json:"id"`
@@ -34,4 +36,13 @@ type RecipeDetail struct {
 	CreatorName string `json:"creator_name"`
 	Rating      string `json:"rating"`
 	Steps       string `json:"steps"`
+}
+
+type RecipesHandler struct {
+	DB db.DBExecutor
+	SecretKey string
+}
+
+func NewRecipesHandler(db db.DBExecutor, secret string) *RecipesHandler {
+	return &RecipesHandler{DB: db, SecretKey: secret}
 }

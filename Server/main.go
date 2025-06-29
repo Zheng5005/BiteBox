@@ -22,6 +22,7 @@ func main() {
 	}
 
 	commentHandler := comments.NewCommentHandler(db.DB, secret)
+	recipesHandler := recipes.NewRecipesHandler(db.DB, secret)
 
 	mux := http.NewServeMux()
 
@@ -33,10 +34,10 @@ func main() {
 	mux.HandleFunc("/api/users/", middleware.JWTMiddleware(users.GetUserInfo))
 
 	// Recipes routes
-	mux.HandleFunc("/api/recipes", recipes.RecipeHandler)
-	mux.HandleFunc("/api/recipes/", recipes.RecipeONEHandler)
-	mux.HandleFunc("/api/guestPost", recipes.PostRecipeGuest)
-	mux.HandleFunc("/api/userPost", middleware.JWTMiddleware(recipes.PostRecipeUser))
+	mux.HandleFunc("/api/recipes", recipesHandler.RecipeHandler)
+	mux.HandleFunc("/api/recipes/", recipesHandler.RecipeONEHandler)
+	mux.HandleFunc("/api/guestPost", recipesHandler.PostRecipeGuest)
+	mux.HandleFunc("/api/userPost", middleware.JWTMiddleware(recipesHandler.PostRecipeUser))
 
 	// Comments routes
 	mux.HandleFunc("/api/comments/", commentHandler.CommentsHandler)

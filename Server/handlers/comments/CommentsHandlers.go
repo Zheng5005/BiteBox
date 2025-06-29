@@ -2,12 +2,11 @@ package comments
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
 
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/Zheng5005/BiteBox/utils"
 )
 
 func (h *CommentHandler) CommentsHandler(w http.ResponseWriter, r *http.Request)  {
@@ -58,34 +57,9 @@ func (h *CommentHandler) PostComment(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
-	auth := r.Header.Get("Authorization")
-	if !strings.HasPrefix(auth, "Bearer ") {
-		http.Error(w, "Missing token", http.StatusUnauthorized)
-		return
-	}
-
-	tokenStr := strings.TrimPrefix(auth, "Bearer ")
-	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Invalid method")
-		}
-		return []byte(h.SecretKey), nil
-	})
-
-	if err != nil || !token.Valid {
-		http.Error(w, "Invalid token", http.StatusUnauthorized)
-		return
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		http.Error(w, "Invalid token claims", http.StatusUnauthorized)
-		return
-	}
-
-	userID, ok := claims["user_id"].(string)
-	if !ok {
-		http.Error(w, "Missing user ID in token", http.StatusUnauthorized)
+	userID, err := utils.ParseToken(r, h.SecretKey)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 

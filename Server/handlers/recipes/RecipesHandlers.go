@@ -6,48 +6,53 @@ import (
 	"log"
 	"net/http"
 	"strings"
-
-	"github.com/Zheng5005/BiteBox/db"
 )
 
-func RecipeHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-		case http.MethodGet:
-		rows, err := db.DB.Query(`
-			SELECT 
-				r.id, 
-				r.name_recipe, 
-				r.description, 
-				r.meal_type_id, 
-				COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg 
-			FROM recipes r 
-			LEFT JOIN comments c ON r.id = c.recipe_id 
-			GROUP BY r.id`)
-			if err != nil {
-				http.Error(w, "Query error", http.StatusInternalServerError)
-				return
-			}
-			defer rows.Close()
-
-			var recipes []RecipesMainPage
-
-			for rows.Next() {
-				var r RecipesMainPage
-				if err := rows.Scan(&r.ID, &r.Name, &r.Description, &r.MealTypeID, &r.Rating); err != nil {
-					http.Error(w, "Scan error", http.StatusInternalServerError)
-					return
-				}
-				recipes = append(recipes, r)
-			}
-
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(recipes)
-		case http.MethodPost:
-			
+func (h *RecipesHandler) RecipeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
+
+	rows, err := h.DB.Query(`
+		SELECT 
+			r.id, 
+			r.name_recipe, 
+			r.description, 
+			r.meal_type_id, 
+			COALESCE(r.img_url, ''),
+			COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg 
+		FROM recipes r 
+		LEFT JOIN comments c ON r.id = c.recipe_id 
+		GROUP BY r.id`)
+	if err != nil {
+		http.Error(w, "Query error", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var recipes []RecipesMainPage
+
+	for rows.Next() {
+		var r RecipesMainPage
+		if err := rows.Scan(&r.ID, &r.Name, &r.Description, &r.MealTypeID, &r.ImgURL, &r.Rating); err != nil {
+			log.Println(err)
+			http.Error(w, "Scan error", http.StatusInternalServerError)
+			return
+		}
+		recipes = append(recipes, r)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(recipes)
 }
 
-func RecipeONEHandler(w http.ResponseWriter, r *http.Request){
+func (h *RecipesHandler) RecipeONEHandler(w http.ResponseWriter, r *http.Request){
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	id := strings.TrimPrefix(r.URL.Path, "/api/recipes/")
 	if id == "" {
 		http.Error(w, "Missing recipe ID", http.StatusBadRequest)
@@ -73,7 +78,7 @@ func RecipeONEHandler(w http.ResponseWriter, r *http.Request){
 
 		var recipe RecipeDetail
 			
-		err := db.DB.QueryRow(query, id).Scan(
+		err := h.DB.QueryRow(query, id).Scan(
 			&recipe.ID,
 			&recipe.Name,
 			&recipe.Description,
@@ -97,10 +102,10 @@ func RecipeONEHandler(w http.ResponseWriter, r *http.Request){
 		json.NewEncoder(w).Encode(recipe)
 }
 
-func PostRecipeGuest(w http.ResponseWriter, r *http.Request)  {
+func (h *RecipesHandler) PostRecipeGuest(w http.ResponseWriter, r *http.Request)  {
 	
 }
 
-func PostRecipeUser(w http.ResponseWriter, r *http.Request)  {
+func (h *RecipesHandler) PostRecipeUser(w http.ResponseWriter, r *http.Request)  {
 	
 }
