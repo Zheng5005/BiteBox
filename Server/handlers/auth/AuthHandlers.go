@@ -4,26 +4,15 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
-	"github.com/Zheng5005/BiteBox/db"
 	"github.com/Zheng5005/BiteBox/lib"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Email string `json:"email"`
-	Password string `json:"password"`
-	URLPhoto string `json:"url_photo"`
-	GoogleID string `json:"google_id"`
-}
-
-func SignUpHandler(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
@@ -70,7 +59,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Save user to DB
-	_, err = db.DB.Exec(
+	_, err = h.DB.Exec(
 		"INSERT INTO users (name, email, password, url_photo) VALUES ($1, $2, $3, $4)",
 		name, email, hashedPassword, imageURL,
 	)
@@ -85,7 +74,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("User created"))
 }
 
-func LoginHandler(w http.ResponseWriter, r *http.Request)  {
+func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request)  {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
@@ -102,7 +91,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request)  {
 	}
 
 	var userID, hashedPassword, name, url_photo string
-	err := db.DB.QueryRow("SELECT id, password, name, COALESCE(url_photo, '') FROM users WHERE email = $1", input.Email).Scan(&userID, &hashedPassword, &name, &url_photo)
+	err := h.DB.QueryRow("SELECT id, password, name, COALESCE(url_photo, '') FROM users WHERE email = $1", input.Email).Scan(&userID, &hashedPassword, &name, &url_photo)
 	if err != nil {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
@@ -124,7 +113,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request)  {
 		log.Println("No .env file available")
 	}
 
-	secret := []byte(getEnv("SECRET_KEY", "other_key"))
+	secret := []byte(h.SecretKey)
 	tokenString, err := token.SignedString(secret)
 	if err != nil {
 		http.Error(w, "Error generating token", http.StatusInternalServerError)
@@ -133,11 +122,4 @@ func LoginHandler(w http.ResponseWriter, r *http.Request)  {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
-}
-
-func getEnv(key, fallback string) string {
-	if value, exists := os.LookupEnv(key); exists {
-		return value
-	}
-	return fallback
 }

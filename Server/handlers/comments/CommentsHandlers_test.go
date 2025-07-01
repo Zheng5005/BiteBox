@@ -113,8 +113,91 @@ func TestGetComment_Success(t *testing.T) {
 	}
 }
 
-// ToDo: Making a test for a request without a token = Both?
-// ToDo: Making a test for a request wit a bad token = Post
-// ToDo: Making a test for a request with a bad method = Both?
-// ToDo: Making a test for a request without an id = Both?
-// ToDo: Making a test for a request with a bad body = Post
+func TestGetBadMethod_Sucess(t *testing.T) {
+	db, _, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("Failed to open mock db: %v", err)
+	}
+	defer db.Close()
+
+	handler := NewCommentHandler(db, "other_key")
+	req := httptest.NewRequest(http.MethodPost, "/api/comments/1", nil)
+	rr := httptest.NewRecorder()
+
+	handler.CommentsHandler(rr, req)
+
+	if rr.Code != http.StatusMethodNotAllowed {
+		t.Errorf("Expected 405 MetodNotAlloed, got %d", rr.Code)
+	}
+}
+
+func TestNoToken_Success (t *testing.T) {
+	// Setting up sqlmock
+	db, _, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("Error initializing sqlmock: %v", err)
+	}
+	defer db.Close()
+
+	// Initializing handler with mock DB
+	handler := NewCommentHandler(db, "other_key")
+
+	// Setting up a request Body
+	body := map[string]interface{}{
+		"comment": "Nice recipe!",
+		"rating": 4.5,
+	}
+	jsonBody, _ := json.Marshal(body) 
+	
+	req := httptest.NewRequest(http.MethodPost, "/api/comments/post/1", bytes.NewReader(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	//Preparing a response recorder
+	rr := httptest.NewRecorder()
+
+	//Calling the handler
+	handler.PostComment(rr, req)
+
+	// Asserting status Code
+	if rr.Code != http.StatusUnauthorized {
+		t.Errorf("expected status 201 Created, got %d", rr.Code)
+	}
+}
+
+func TestBadToken_Success (t *testing.T) {
+	// Setting up sqlmock
+	db, _, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("Error initializing sqlmock: %v", err)
+	}
+	defer db.Close()
+
+	// Initializing handler with mock DB
+	handler := NewCommentHandler(db, "other_key")
+
+	// Setting up a request Body
+	body := map[string]interface{}{
+		"comment": "Nice recipe!",
+		"rating": 4.5,
+	}
+	jsonBody, _ := json.Marshal(body) 
+	
+	req := httptest.NewRequest(http.MethodPost, "/api/comments/post/1", bytes.NewReader(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Attaching a invalid mock jwt
+	token := "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE3NTE0MDczNDcsImV4cCI6MTc4Mjk0MzM0NywiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG5ueSJ9.PWkBwDqKuf40en6JMHDQeDH3bUQL9e1fJJedj_xUXIo"
+
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	//Preparing a response recorder
+	rr := httptest.NewRecorder()
+
+	//Calling the handler
+	handler.PostComment(rr, req)
+
+	// Asserting status Code
+	if rr.Code != http.StatusUnauthorized {
+		t.Errorf("expected status 401 Created, got %d", rr.Code)
+	}
+}

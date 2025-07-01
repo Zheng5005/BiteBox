@@ -111,9 +111,25 @@ func TestGetRecipe_Success(t *testing.T)  {
 	}
 }
 
+func TestGetBadMethod_Sucess(t *testing.T) {
+	db, _, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("Failed to open mock db: %v", err)
+	}
+	defer db.Close()
+
+	handler := NewRecipesHandler(db, "other_key")
+	req := httptest.NewRequest(http.MethodPost, "/api/recipes", nil)
+	rr := httptest.NewRecorder()
+
+	handler.RecipeHandler(rr, req)
+
+	if rr.Code != http.StatusMethodNotAllowed {
+		t.Errorf("Expected 405 MetodNotAlloed, got %d", rr.Code)
+	}
+}
 
 // ToDo: Making a test for a request without a token = Post with auth
 // ToDo: Making a test for a request wit a bad token = Post with auth 
-// ToDo: Making a test for a request with a bad method = All?
 // ToDo: Making a test for a request without an id = One recipe, Patch?, Delete?
 // ToDo: Making a test for a request with a bad body = Post

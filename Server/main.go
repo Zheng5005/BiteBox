@@ -23,12 +23,13 @@ func main() {
 
 	commentHandler := comments.NewCommentHandler(db.DB, secret)
 	recipesHandler := recipes.NewRecipesHandler(db.DB, secret)
+	authHandler := auth.NewAuthHandler(db.DB, secret)
 
 	mux := http.NewServeMux()
 
 	// Auth routes
-	mux.HandleFunc("/api/auth/signup", auth.SignUpHandler)
-	mux.HandleFunc("/api/auth/login", auth.LoginHandler)
+	mux.HandleFunc("/api/auth/signup", authHandler.SignUpHandler)
+	mux.HandleFunc("/api/auth/login", authHandler.LoginHandler)
 
 	// Users routes
 	mux.HandleFunc("/api/users/", middleware.JWTMiddleware(users.GetUserInfo))
