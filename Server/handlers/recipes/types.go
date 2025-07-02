@@ -2,17 +2,15 @@ package recipes
 
 import "github.com/Zheng5005/BiteBox/db"
 
-// This type is for POST and PATCH?
-type Recipe struct {
+type RecipePost struct {
 	ID   string `json:"id"`
 	UserID string `json:"user_id"`
 	Name string `json:"name_recipe"`
 	Description string `json:"description"`
+	Steps string `json:"steps"`
 	MealTypeID string `json:"meal_type_id"`
 	ImgURL string `json:"img_url"`
 	GuestName string `json:"guest_name"`
-
-	Rating string `json:"rating"`
 }
 
 //Type crafted with the main page in mind

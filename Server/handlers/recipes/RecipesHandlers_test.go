@@ -1,13 +1,17 @@
 package recipes
 
 import (
+	"bytes"
 	"encoding/json"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/Zheng5005/BiteBox/utils"
 )
 
 func TestGetRecipes_Success(t *testing.T)  {
@@ -129,7 +133,85 @@ func TestGetBadMethod_Sucess(t *testing.T) {
 	}
 }
 
-// ToDo: Making a test for a request without a token = Post with auth
-// ToDo: Making a test for a request wit a bad token = Post with auth 
-// ToDo: Making a test for a request without an id = One recipe, Patch?, Delete?
-// ToDo: Making a test for a request with a bad body = Post
+func TestPostRecipeGuest_Sucess(t *testing.T)  {
+	// Setup DB mock
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("Failed to open mock DB: %v", err)
+	}
+	defer db.Close()
+
+	handler := NewRecipesHandler(db, "other_key")
+
+	// Prepare multipart form
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	_ = writer.WriteField("name", "Pupusas")
+	_ = writer.WriteField("description", "Best food")
+	_ = writer.WriteField("steps", "Mix and cook")
+	_ = writer.WriteField("meal_type_id", "1")
+	_ = writer.WriteField("guest_name", "Guesty")
+	writer.Close()
+
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO recipes (guest_name, name_recipe, description, meal_type_id, img_url, steps)")).
+		WithArgs("Guesty", "Pupusas", "Best food", "1", "", "Mix and cook").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	req := httptest.NewRequest(http.MethodPost, "/api/recipes/guest", &body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	rr := httptest.NewRecorder()
+
+	handler.PostRecipeGuest(rr, req)
+
+	if rr.Code != http.StatusCreated {
+		t.Errorf("Expected status 201 Created, got %d", rr.Code)
+	}
+
+	if strings.TrimSpace(rr.Body.String()) != "Recipe Created" {
+		t.Errorf("Expected body 'Recipe Created', got '%s'", rr.Body.String())
+	}
+}
+
+func TestPostRecipeUser_Sucess(t *testing.T)  {
+	// Setup DB mock
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("Failed to open mock DB: %v", err)
+	}
+	defer db.Close()
+
+	handler := NewRecipesHandler(db, "other_key")
+
+	// Prepare multipart form
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	_ = writer.WriteField("name", "Pizza")
+	_ = writer.WriteField("description", "Yummy")
+	_ = writer.WriteField("steps", "Bake it")
+	_ = writer.WriteField("meal_type_id", "2")
+	writer.Close()
+
+	token, err := utils.GenerateMockJWT("user-id-123", "other_key")
+	if err != nil {
+		t.Fatalf("Failed to generate mock JWT: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/api/recipes/userPost", &body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("Authorization", "Bearer "+token) // Simulated token
+
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO recipes (user_id, name_recipe, description, meal_type_id, img_url, steps)")).
+		WithArgs("user-id-123", "Pizza", "Yummy", "2", "", "Bake it").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	rr := httptest.NewRecorder()
+	handler.PostRecipeUser(rr, req)
+
+	if rr.Code != http.StatusCreated {
+		t.Errorf("Expected status 201 Created, got %d", rr.Code)
+	}
+
+	if strings.TrimSpace(rr.Body.String()) != "Recipe Created" {
+		t.Errorf("Expected body 'Recipe Created', got '%s'", rr.Body.String())
+	}
+}

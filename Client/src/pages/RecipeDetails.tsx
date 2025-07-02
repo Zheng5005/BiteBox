@@ -7,7 +7,7 @@ interface Recipe {
   name_recipe: string;
   description: string;
   meal_type_id: string;
-  image: string;
+  img_url: string;
   creator_name: string;
   rating: number;
   steps: string[];
@@ -31,26 +31,32 @@ const RecipeDetails: React.FC = () => {
   });
   const { id } = useParams()
   const { user } = useAuth();
-  const token = localStorage.getItem("token")
+
+  const fetchComments = async () => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/comments/${id}`);
+      const data = await res.json();
+      setComments(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   useEffect(() => {
     async function fetchData() {
-      const res = await fetch(`http://localhost:8080/api/recipes/${id}`);
-      const recipeData = await res.json();
-      setRecipe(recipeData);
+      try {
+        const res = await fetch(`http://localhost:8080/api/recipes/${id}`);
+        const recipeData = await res.json();
+        setRecipe(recipeData);
 
-      const commentsRes = await fetch(`http://localhost:8080/api/comments/${id}`);
-      const commentsData = await commentsRes.json();
-
-      if (Array.isArray(commentsData)) {
-        setComments(commentsData);
-      } else {
-        setComments([])
+        await fetchComments()
+      } catch (error) {
+        console.log(error)
       }
     }
 
     fetchData();
-  }, [id, comments]);
+  }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -65,31 +71,32 @@ const RecipeDetails: React.FC = () => {
     e.preventDefault();
     if (!newComment.comment.trim() || newComment.rating == 0) return;
 
-    await fetch(`http://localhost:8080/api/comments/post/${id}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ comment: newComment.comment, rating: newComment.rating }),
-    });
+    const token = localStorage.getItem("token")
+    if (!token) return
 
-    setNewComment({
-      comment: "",
-      rating: 0
-    });
+    try {
+      await fetch(`http://localhost:8080/api/comments/post/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ comment: newComment.comment, rating: newComment.rating }),
+      });
 
-    // Refresh comments
-    const res = await fetch(`http://localhost:8080/api/comments/${id}`);
-    const resData = res.json()
-    if (Array.isArray(resData)) {
-      setComments(resData);
-    } else {
-      setComments([])
+      setNewComment({
+        comment: "",
+        rating: 1
+      });
+
+      // Refresh comments
+      await fetchComments()
+
+      //optional, show comments inmediatly, but maybe it would be too slow in production
+      setActiveTab("comments")
+    } catch (error) {
+      console.log(error)
     }
-
-    //optional, show comments inmediatly, but maybe it would be too slow in production
-    //setActiveTab("comments")
   };
 
   if (!recipe) return <p className="text-center">Loading recipe...</p>;
@@ -103,8 +110,8 @@ const RecipeDetails: React.FC = () => {
           By: {recipe.creator_name ?? 'Anonymous'}
         </p>
         <img
-          src="https://i.pravatar.cc/150?u=a042581f4e29026024d"
-          //src={recipe.image}
+          //src="https://i.pravatar.cc/150?u=a042581f4e29026024d"
+          src={recipe.img_url}
           alt={recipe.name_recipe}
           className="w-full max-h-96 object-cover rounded-lg shadow"
         />

@@ -8,7 +8,6 @@ import (
 
 	"github.com/Zheng5005/BiteBox/lib"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -107,11 +106,6 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request)  {
 		"url_photo": url_photo,
 		"exp": time.Now().Add(24 * time.Hour).Unix(),
 	})
-
-	errENV := godotenv.Load()
-	if errENV != nil {
-		log.Println("No .env file available")
-	}
 
 	secret := []byte(h.SecretKey)
 	tokenString, err := token.SignedString(secret)
