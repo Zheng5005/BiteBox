@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
+import IFLButton from '../components/IFLButton';
+import MealTypeFilter from '../components/MealTypeFilter';
+import { useMealTypes } from '../hooks/useMealTypes';
 
 interface Recipe {
   id: number;
@@ -10,16 +13,11 @@ interface Recipe {
   rating: number
 }
 
-interface Meal_type {
-  id: number,
-  name: string
-}
-
 const MainPage: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [mealTypeSelected, setMealTypeSelected] = useState<string>('')
   const [recipesArray, setRecipesArray] = useState<Recipe[]>([])
-  const [mealTypes, setMealTypes] = useState<Meal_type[]>([])
+  const mealTypes = useMealTypes()
 
   async function fetchRecipes(): Promise<void>{
     const res = await fetch('http://localhost:8080/api/recipes')
@@ -27,15 +25,8 @@ const MainPage: React.FC = () => {
     setRecipesArray(data)
   }
 
-  async function fetchMealTypes(): Promise<void>{
-    const res = await fetch('http://localhost:8080/api/mealtypes')
-    const data = await res.json()
-    setMealTypes(data)
-  }  
-
   useEffect(() => {
     fetchRecipes()
-    fetchMealTypes()
   }, [])
 
   const filteredRecipes = useMemo(() => {
@@ -58,18 +49,8 @@ const MainPage: React.FC = () => {
           placeholder="Search recipes..."
           className="w-full md:w-1/2 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
-          <select
-            value={mealTypeSelected}
-            onChange={(e) => setMealTypeSelected(e.target.value)}
-            className="w-full md:w-1/4 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-red-300"
-          >
-            <option value="">All meals</option>
-            {mealTypes.map((mt) => (
-              <option key={mt.id} value={mt.id}>
-                {mt.name}
-              </option>
-            ))}
-          </select>
+        <MealTypeFilter mealTypes={mealTypes} selected={mealTypeSelected} onChange={setMealTypeSelected}/>
+        <IFLButton recipes={recipesArray} />
       </div>
 
       {/* Recipes */}

@@ -1,15 +1,8 @@
-import React, { useState } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
-  const [lang, setLang] = useState<'en' | 'es'>('en');
-
-  const toggleLanguage = () => {
-    setLang((prev) => (prev === 'en' ? 'es' : 'en'));
-  };
-
   return (
     <nav className="bg-white shadow-md w-full px-6 py-4">
       <div className="max-w-7xl mx-auto flex justify-between items-center flex-wrap">
@@ -26,14 +19,6 @@ const Navbar: React.FC = () => {
 
         {/* Right controls */}
         <div className="flex items-center gap-4 mt-4 md:mt-0">
-          {/* Language toggle */}
-          <button
-            onClick={toggleLanguage}
-            className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 transition"
-          >
-            {lang.toUpperCase()}
-          </button>
-
           {user ? (
             // If user is authenticated
             <>

@@ -126,8 +126,7 @@ const SignUp: React.FC = () => {
                     <img src={previewImage} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
                     <div className="text-center">
-                      {/* <FiCamera className="mx-auto text-[#EFB8C8] text-2xl" />   */} 
-                      <span className="text-xs text-pink-200 block mt-1">Subir foto</span>
+                      <span className="text-xs text-pink-200 block mt-1">Upload photo</span>
                     </div>
                   )}
                 </div>
@@ -138,7 +137,6 @@ const SignUp: React.FC = () => {
                   className="hidden" 
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 rounded-full flex items-center justify-center transition">
-                  {/* <FiCamera className="text-white text-xl" /> */}
                 </div>
               </label>
             </div>
