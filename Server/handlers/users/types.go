@@ -11,6 +11,16 @@ type User struct {
 	GoogleID string `json:"google_id"`
 }
 
+type RecipesMainPage struct {
+	ID   string `json:"id"`
+	Name string `json:"name_recipe"`
+	Description string `json:"description"`
+	MealTypeID string `json:"meal_type_id"`
+	ImgURL string `json:"img_url"`
+
+	Rating string `json:"rating"`
+}
+
 type UserHandler struct {
 	DB db.DBExecutor
 	SecretKey string

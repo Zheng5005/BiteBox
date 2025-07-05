@@ -24,6 +24,7 @@ func main() {
 	commentHandler := comments.NewCommentHandler(db.DB, secret)
 	recipesHandler := recipes.NewRecipesHandler(db.DB, secret)
 	authHandler := auth.NewAuthHandler(db.DB, secret)
+	userHandler := users.NewUserHandler(db.DB, secret)
 
 	mux := http.NewServeMux()
 
@@ -32,7 +33,9 @@ func main() {
 	mux.HandleFunc("/api/auth/login", authHandler.LoginHandler)
 
 	// Users routes
-	mux.HandleFunc("/api/users/", middleware.JWTMiddleware(users.GetUserInfo))
+	mux.HandleFunc("/api/users", middleware.JWTMiddleware(userHandler.GetRecipesAuth))
+	mux.HandleFunc("PATCH /api/users/edit/", middleware.JWTMiddleware(userHandler.EditRecipeAuth))
+	mux.HandleFunc("PATCH /api/users/deactivate/", middleware.JWTMiddleware(userHandler.DeActivateRecipeAuth))
 
 	// Recipes routes
 	mux.HandleFunc("/api/recipes", recipesHandler.RecipeHandler)
