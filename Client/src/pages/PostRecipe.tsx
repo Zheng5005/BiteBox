@@ -19,7 +19,6 @@ const PostRecipe: React.FC = () => {
   const [previewImage, setPreviewImage] = useState<string | ArrayBuffer | null>(null)
   const [imageFile, setImageFile] = useState<string | Blob | null>(null)
   const { user } = useAuth();
-  const endpoint = user ? "/api/recipes/userPost" : "/api/recipes/guestPost"
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -50,8 +49,62 @@ const PostRecipe: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (info.isSubmiting) return
+
+    setInfo({...info, isSubmiting: true})
+
+    const formData = new FormData();
+    formData.append("name", `${form.name_recipe}`);
+    formData.append("description", form.description);
+    formData.append("steps", form.steps);
+    formData.append("meal_type_id", mealTypeSelected);
+    if (!user) {
+      formData.append("guest_name", form.guest_name);
+    }
+    if (imageFile) {
+      formData.append("image", imageFile);
+    }
+
+    try {
+      if (user) {
+        const response = await fetch("http://localhost:8080/api/recipes/userPost", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: formData,
+        });
+
+        const data = await response.json();
+        console.log(data)
+
+        if (!response.ok) {
+          throw new Error("Error en el registro");
+        }
+
+        cleanForm();
+      } else {
+        const response = await fetch("http://localhost:8080/api/recipes/guestPost", {
+        method: "POST",
+        body: formData,
+        });
+
+        const data = await response.json();
+        console.log(data)
+
+        if (!response.ok) {
+          throw new Error("Error en el registro");
+        }
+
+        cleanForm();
+      }
+    } catch (error) {
+      setInfo({...info, error: "Error while posting up, please try again"})
+    } finally {
+      setInfo({...info, isSubmiting: false})
+    }
   }
 
   const cleanForm = () => {
