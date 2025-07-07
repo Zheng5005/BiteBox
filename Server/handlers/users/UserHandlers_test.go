@@ -68,3 +68,23 @@ func TestGetUserRecipes_Success(t *testing.T)  {
 		t.Errorf("Unexpected content in response: %v", got)
 	}
 }
+
+func TestEditRecipe_Success(t *testing.T)  {
+	
+}
+
+func TestDeactivateRecipe_Success(t *testing.T)  {
+	
+}
+
+func TestActivateRecipe_Success(t *testing.T)  {
+	
+}
+
+func TestGetRecipesByUser_Success(t *testing.T)  {
+	
+}
+
+func TestGetRecipesByGuest_Success(t *testing.T)  {
+	
+}

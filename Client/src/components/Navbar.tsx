@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
+import Avatar from './Avatar';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -22,11 +23,7 @@ const Navbar: React.FC = () => {
           {user ? (
             // If user is authenticated
             <>
-              <img
-                src={user.url_photo}
-                alt="User"
-                className="w-10 h-10 rounded-full object-cover border"
-              />
+              <Avatar size={12} />
               <button onClick={logout} className="px-3 py-1 text-sm text-red-600 border border-red-600 rounded-md hover:bg-red-50 transition">
                   Logout
               </button>

@@ -27,6 +27,7 @@ func (h *RecipesHandler) RecipeHandler(w http.ResponseWriter, r *http.Request) {
 			COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg 
 		FROM recipes r 
 		LEFT JOIN comments c ON r.id = c.recipe_id 
+		WHERE r.is_active = true
 		GROUP BY r.id`)
 	if err != nil {
 		http.Error(w, "Query error", http.StatusInternalServerError)
@@ -75,7 +76,7 @@ func (h *RecipesHandler) RecipeONEHandler(w http.ResponseWriter, r *http.Request
 			FROM recipes r
 			LEFT JOIN users u ON u.id = r.user_id
 			LEFT JOIN comments c ON c.recipe_id = r.id
-			WHERE r.id = $1
+			WHERE r.id = $1 AND r.is_active = true
 			GROUP BY r.id, u.name, r.guest_name;
 		`
 
