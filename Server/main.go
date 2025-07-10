@@ -38,6 +38,9 @@ func main() {
 	mux.HandleFunc("PATCH /api/users/deactivate/", middleware.JWTMiddleware(userHandler.DeActivateRecipeAuth))
 	mux.HandleFunc("PATCH /api/users/activate/", middleware.JWTMiddleware(userHandler.ActivateRecipeAuth))
 
+	mux.HandleFunc("GET /api/users/ByUser", userHandler.GetRecipesByUser)
+	mux.HandleFunc("GET /api/users/ByGuest", userHandler.GetRecipesByGuestName)
+
 	// Recipes routes
 	mux.HandleFunc("/api/recipes", recipesHandler.RecipeHandler)
 	mux.HandleFunc("/api/recipes/", recipesHandler.RecipeONEHandler)
