@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../api/axiosInstance'; // Import axiosInstance
+import axios from 'axios';
+import { useParams } from 'react-router';
 
 interface Recipe {
   id: number;
@@ -29,29 +31,30 @@ const RecipeDetails: React.FC = () => {
     comment: "",
     rating: 1
   });
+  const [error, setError] = useState<string | null>(null); // State for error handling
   const { id } = useParams()
   const { user } = useAuth();
 
   const fetchComments = async () => {
     try {
-      const res = await fetch(`http://localhost:8080/api/comments/${id}`);
-      const data = await res.json();
-      setComments(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.log(error)
+      const res = await axiosInstance.get(`/comments/${id}`);
+      setComments(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Failed to fetch comments:", err);
+      setError("Failed to load comments.");
     }
   }
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch(`http://localhost:8080/api/recipes/${id}`);
-        const recipeData = await res.json();
-        setRecipe(recipeData);
+        const recipeRes = await axiosInstance.get(`/recipes/${id}`);
+        setRecipe(recipeRes.data);
 
         await fetchComments()
-      } catch (error) {
-        console.log(error)
+      } catch (err) {
+        console.error("Failed to fetch recipe details:", err);
+        setError("Failed to load recipe details.");
       }
     }
 
@@ -71,17 +74,14 @@ const RecipeDetails: React.FC = () => {
     e.preventDefault();
     if (!newComment.comment.trim() || newComment.rating == 0) return;
 
-    const token = localStorage.getItem("token")
-    if (!token) return
+    // Token is now handled by the axios interceptor, no need to get it manually here
+    // const token = localStorage.getItem("token")
+    // if (!token) return
 
     try {
-      await fetch(`http://localhost:8080/api/comments/post/${id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ comment: newComment.comment, rating: newComment.rating }),
+      await axiosInstance.post(`/comments/post/${id}`, { 
+        comment: newComment.comment, 
+        rating: newComment.rating 
       });
 
       setNewComment({
@@ -92,13 +92,18 @@ const RecipeDetails: React.FC = () => {
       // Refresh comments
       await fetchComments()
 
-      //optional, show comments inmediatly, but maybe it would be too slow in production
       setActiveTab("comments")
-    } catch (error) {
-      console.log(error)
+    } catch (err) {
+      console.error("Failed to post comment:", err);
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data.message || "Failed to post comment.");
+      } else {
+        setError("Failed to post comment due to an unexpected error.");
+      }
     }
   };
 
+  if (error) return <p className="text-center text-red-500">{error}</p>;
   if (!recipe) return <p className="text-center">Loading recipe...</p>;
 
   return (
@@ -170,6 +175,7 @@ const RecipeDetails: React.FC = () => {
       // Form to leave a comment
         <form onSubmit={handleCommentSubmit} className="space-y-4">
           <h3 className="text-xl font-semibold">Leave a Comment</h3>
+          {error && <p className="text-red-500 text-sm">{error}</p>} {/* Display form-specific errors */}
           <textarea
             id="comment"
             name="comment"

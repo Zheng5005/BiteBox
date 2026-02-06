@@ -1,4 +1,6 @@
 import { useState } from "react"
+import axiosInstance from "../api/axiosInstance";
+import axios from "axios";
 import { Link } from "react-router";
 
 const Login: React.FC = () => {
@@ -11,31 +13,21 @@ const Login: React.FC = () => {
     error: "",
   })
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
 
-  async function handleSubmit(e: any){
+  async function handleSubmit(e: React.FormEvent){
     e.preventDefault()
     if (info.isSubmiting) return;
   
-    setInfo({...info, isSubmiting: true})
+    setInfo(prev => ({...prev, isSubmiting: true, error: ""}));
     try {
-      const res = await fetch("http://localhost:8080/api/auth/login", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(form),
-      })
+      const res = await axiosInstance.post("/auth/login", form);
 
-      if(!res.ok){
-        setInfo({...info, isSubmiting: false})
-        return
-      }
-
-      const fetchData = await res.json()
-      if (fetchData.token){
-        localStorage.setItem("token", fetchData.token)
+      if(res.data.token){
+        localStorage.setItem("token", res.data.token)
       }
 
       // Obtener info del user
@@ -46,10 +38,14 @@ const Login: React.FC = () => {
         window.location.href = "/"
       }, 500)
     } catch (error) {
-      setInfo({...info, error: String(error)})
-      console.log(error)
+      if (axios.isAxiosError(error) && error.response) {
+        setInfo(prev => ({...prev, error: error?.response?.data.message || "Login failed"}));
+      } else {
+        setInfo(prev => ({...prev, error: String(error)}));
+      }
+      console.error(error)
     } finally {
-      setInfo({...info, isSubmiting: false})
+      setInfo(prev => ({...prev, isSubmiting: false}))
     }
   }
 
@@ -102,12 +98,17 @@ const Login: React.FC = () => {
               </div>
             </div>
 
+            {info.error && (
+              <p className="text-red-500 text-sm text-center">{info.error}</p>
+            )}
+
             <div>
               <button
                 type="submit"
                 className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                disabled={info.isSubmiting}
               >
-                Log In
+                {info.isSubmiting ? "Logging in..." : "Log In"}
               </button>
             </div>
           </form>

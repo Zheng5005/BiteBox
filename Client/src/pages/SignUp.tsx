@@ -1,4 +1,6 @@
 import { useState } from "react"
+import axiosInstance from "../api/axiosInstance" // Import axiosInstance
+import axios from "axios" // Import axios for error type checking
 import { Link } from "react-router"
 
 const SignUp: React.FC = () => {
@@ -8,21 +10,24 @@ const SignUp: React.FC = () => {
     password: "",
   })
   const [previewImage, setPreviewImage] = useState<string | ArrayBuffer | null>(null)
-  const [imageFile, setImageFile] = useState<string | Blob | null>(null)
+  const [imageFile, setImageFile] = useState<File | null>(null) // Changed type to File | null
   const [info, setInfo] = useState({
     isSubmiting: false,
     error: "",
+    success: false, // Added success state
   })
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    // Clear previous error messages when user starts typing
+    setInfo(prev => ({...prev, error: ""}));
 
     if (name === 'user_name') {
       if (/[0-9]/.test(value)) {
-        setInfo({...info, error: "Numbers not allowed"})
+        setInfo(prev => ({...prev, error: "Numbers not allowed in username."}))
         return;
       } else if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/.test(value)) {
-        setInfo({...info, error: "No special characters allowed"})
+        setInfo(prev => ({...prev, error: "No special characters allowed in username."}))
         return;
       }
     }
@@ -30,18 +35,19 @@ const SignUp: React.FC = () => {
     setForm({ ...form, [name]: value });
   };
 
-  const handleImageChange = (e: any) => {
-    const file = e.target.files[0];
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
     if (!file) return;
 
+    setInfo(prev => ({...prev, error: ""})); // Clear image related errors
 
     if (!file.type.match('image.*')) {
-      setInfo({...info, error: "Only PNG or JPEG images"})
+      setInfo(prev => ({...prev, error: "Only PNG or JPEG images are allowed."}))
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      setInfo({...info, error: "Image should be less than 2MB"})
+      setInfo(prev => ({...prev, error: "Image should be less than 2MB."}))
       return;
     }
 
@@ -54,14 +60,14 @@ const SignUp: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (info.isSubmiting) return
 
-    setInfo({...info, isSubmiting: true})
+    setInfo(prev => ({...prev, isSubmiting: true, error: "", success: false})) // Reset states
 
     const formData = new FormData();
-    formData.append("name", `${form.user_name}`);
+    formData.append("name", form.user_name);
     formData.append("email", form.email);
     formData.append("password", form.password);
     if (imageFile) {
@@ -69,27 +75,28 @@ const SignUp: React.FC = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/signup", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await axiosInstance.postForm("/auth/signup", formData);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error("Error en el registro");
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+        setInfo(prev => ({...prev, success: true}));
+        // Optionally redirect or show success message
+        setTimeout(() => {
+          window.location.href = "/" // Redirect to home or dashboard
+        }, 1500)
+      } else {
+        setInfo(prev => ({...prev, error: response.data.message || "Sign up failed."}));
       }
-
-      cleanForm();
-      
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        //setTimeout(() => navigate("/profile"), 1500);
+      cleanForm(); // Clear form after successful submission
+    } catch (err) {
+      console.error("Error during sign up:", err);
+      if (axios.isAxiosError(err) && err.response) {
+        setInfo(prev => ({...prev, error: err?.response?.data.message || "Error while signing up."}));
+      } else {
+        setInfo(prev => ({...prev, error: "An unexpected error occurred during sign up."}));
       }
-    } catch (error) {
-      setInfo({...info, error: "Error while signing up, please try again"})
     } finally {
-      setInfo({...info, isSubmiting: false})
+      setInfo(prev => ({...prev, isSubmiting: false}))
     }
   };
 
@@ -102,10 +109,6 @@ const SignUp: React.FC = () => {
 
     setPreviewImage(null);
     setImageFile(null);
-    setInfo({
-      isSubmiting: false,
-      error: "",
-    })
   };
 
   return (
@@ -123,7 +126,7 @@ const SignUp: React.FC = () => {
               <label className="relative group cursor-pointer">
                 <div className="w-24 h-24 rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden">
                   {previewImage ? (
-                    <img src={previewImage} alt="Preview" className="w-full h-full object-cover" />
+                    <img src={previewImage as string} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
                     <div className="text-center">
                       <span className="text-xs text-pink-200 block mt-1">Upload photo</span>
@@ -197,18 +200,20 @@ const SignUp: React.FC = () => {
               </div>
             </div>
 
-            {info.error != "" ? (
-              <label className="block text-sm/6 font-medium text-gray-900">
-                {info.error}
-              </label>
-            ): null}
+            {info.error && (
+              <p className="text-red-500 text-sm text-center">{info.error}</p>
+            )}
+            {info.success && (
+              <p className="text-green-500 text-sm text-center">Sign Up successful! Redirecting...</p>
+            )}
 
             <div>
               <button
                 type="submit"
                 className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                disabled={info.isSubmiting} // Disable button when submitting
               >
-                Sign up
+                {info.isSubmiting ? "Signing Up..." : "Sign up"}
               </button>
             </div>
           </form>

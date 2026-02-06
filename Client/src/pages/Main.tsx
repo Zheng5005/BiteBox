@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router';
 import IFLButton from '../components/IFLButton';
 import MealTypeFilter from '../components/MealTypeFilter';
 import { useMealTypes } from '../hooks/useMealTypes';
+import axiosInstance from '../api/axiosInstance'; // Import axiosInstance
+import { Link } from 'react-router';
 
 interface Recipe {
   id: number;
@@ -20,9 +21,13 @@ const MainPage: React.FC = () => {
   const mealTypes = useMealTypes()
 
   async function fetchRecipes(): Promise<void>{
-    const res = await fetch('http://localhost:8080/api/recipes')
-    const data = await res.json()
-    setRecipesArray(data)
+    try {
+      const res = await axiosInstance.get('/recipes'); // Use axiosInstance.get
+      setRecipesArray(res.data); // Axios puts the response data in .data
+    } catch (error) {
+      console.error("Failed to fetch recipes:", error);
+      // Optionally, handle error state here
+    }
   }
 
   useEffect(() => {
