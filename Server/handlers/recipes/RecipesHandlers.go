@@ -109,9 +109,9 @@ func (h *RecipesHandler) RecipeONEHandler(w http.ResponseWriter, r *http.Request
 func (h *RecipesHandler) PostRecipeGuest(w http.ResponseWriter, r *http.Request)  {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
 
-	// Parse form data (10MB max for uploaded file)
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return
@@ -128,14 +128,12 @@ func (h *RecipesHandler) PostRecipeGuest(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	//Upload image to Cloudinary
 	file, fileHeader, err := r.FormFile("image")
 	var imageURL string
 
 	if err == nil {
 		defer file.Close()
 
-		// Assume you have a cloudinary uploader function
 		imageURL, err = lib.UploadToCloudinary(file, fileHeader.Filename)
 		if err != nil {
 			http.Error(w, "Error uploading image", http.StatusInternalServerError)
@@ -152,7 +150,7 @@ func (h *RecipesHandler) PostRecipeGuest(w http.ResponseWriter, r *http.Request)
 	)
 
 	if err != nil {
-		log.Panicln(err)
+		log.Println(err)
 		http.Error(w, "Error creating recipe", http.StatusInternalServerError)
 		return
 	}
@@ -164,9 +162,9 @@ func (h *RecipesHandler) PostRecipeGuest(w http.ResponseWriter, r *http.Request)
 func (h *RecipesHandler) PostRecipeUser(w http.ResponseWriter, r *http.Request)  {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
 
-	// Parse form data (10MB max for uploaded file)
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return
@@ -182,14 +180,12 @@ func (h *RecipesHandler) PostRecipeUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	//Upload image to Cloudinary
 	file, fileHeader, err := r.FormFile("image")
 	var imageURL string
 
 	if err == nil {
 		defer file.Close()
 
-		// Assume you have a cloudinary uploader function
 		imageURL, err = lib.UploadToCloudinary(file, fileHeader.Filename)
 		if err != nil {
 			http.Error(w, "Error uploading image", http.StatusInternalServerError)
@@ -212,7 +208,7 @@ func (h *RecipesHandler) PostRecipeUser(w http.ResponseWriter, r *http.Request) 
 	)
 
 	if err != nil {
-		log.Panicln(err)
+		log.Println(err)
 		http.Error(w, "Error creating recipe", http.StatusInternalServerError)
 		return
 	}

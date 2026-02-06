@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useAuth } from "../context/AuthContext"
 import { useMealTypes } from "../hooks/useMealTypes"
 import MealTypeFilter from "../components/MealTypeFilter"
+import axiosInstance from "../api/axiosInstance"
 
 const PostRecipe: React.FC = () => {
   const mealTypes = useMealTypes()
@@ -69,32 +70,21 @@ const PostRecipe: React.FC = () => {
 
     try {
       if (user) {
-        const response = await fetch("http://localhost:8080/api/recipes/userPost", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: formData,
-        });
+        const response = await axiosInstance.postForm("/recipes/userPost", formData);
+        console.log(response)
+        console.log(response.status)
 
-        const data = await response.json();
-        console.log(data)
-
-        if (!response.ok) {
+        if (!response.status) {
           throw new Error("Error en el registro");
         }
 
         cleanForm();
       } else {
-        const response = await fetch("http://localhost:8080/api/recipes/guestPost", {
-        method: "POST",
-        body: formData,
-        });
+        const response = await axiosInstance.postForm("/recipes/guestPost", formData);
+        console.log(response)
+        console.log(response.status)
 
-        const data = await response.json();
-        console.log(data)
-
-        if (!response.ok) {
+        if (!response.status) {
           throw new Error("Error en el registro");
         }
 
