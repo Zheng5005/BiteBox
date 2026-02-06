@@ -44,8 +44,7 @@ func main() {
 	// Recipes routes
 	mux.HandleFunc("/api/recipes", recipesHandler.RecipeHandler)
 	mux.HandleFunc("/api/recipes/", recipesHandler.RecipeONEHandler)
-	mux.HandleFunc("/api/recipes/guestPost", recipesHandler.PostRecipeGuest)
-	mux.HandleFunc("/api/recipes/userPost", middleware.JWTMiddleware(recipesHandler.PostRecipeUser))
+	mux.HandleFunc("/api/recipes/post", recipesHandler.PostRecipe)
 
 	// Comments routes
 	mux.HandleFunc("/api/comments/", commentHandler.CommentsHandler)

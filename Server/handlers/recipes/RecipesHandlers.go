@@ -106,60 +106,7 @@ func (h *RecipesHandler) RecipeONEHandler(w http.ResponseWriter, r *http.Request
 		json.NewEncoder(w).Encode(recipe)
 }
 
-func (h *RecipesHandler) PostRecipeGuest(w http.ResponseWriter, r *http.Request)  {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
-		return
-	}
-
-	name_recipe := r.FormValue("name")
-	description := r.FormValue("description")
-	steps := r.FormValue("steps")
-	meal_type_id := r.FormValue("meal_type_id")
-	guest_name := r.FormValue("guest_name")
-
-	if name_recipe == "" || description == "" || steps == "" || meal_type_id == "" || guest_name == "" {
-		http.Error(w, "Missing required fields", http.StatusBadRequest)
-		return
-	}
-
-	file, fileHeader, err := r.FormFile("image")
-	var imageURL string
-
-	if err == nil {
-		defer file.Close()
-
-		imageURL, err = lib.UploadToCloudinary(file, fileHeader.Filename)
-		if err != nil {
-			http.Error(w, "Error uploading image", http.StatusInternalServerError)
-			return
-		}
-	} else if err != http.ErrMissingFile {
-		http.Error(w, "Error reading file", http.StatusBadRequest)
-		return
-	}
-
-	_, err = h.DB.Exec(
-		"INSERT INTO recipes (guest_name, name_recipe, description, meal_type_id, img_url, steps) VALUES ($1, $2, $3, $4, $5, $6)",
-		guest_name, name_recipe, description, meal_type_id, imageURL, steps,
-	)
-
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error creating recipe", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Recipe Created"))
-}
-
-func (h *RecipesHandler) PostRecipeUser(w http.ResponseWriter, r *http.Request)  {
+func (h *RecipesHandler) PostRecipe(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -196,16 +143,25 @@ func (h *RecipesHandler) PostRecipeUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userID, err := utils.ParseToken(r, h.SecretKey)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
-		return
-	}
+	userID, tokenErr := utils.ParseToken(r, h.SecretKey)
 
-	_, err = h.DB.Exec(
-		"INSERT INTO recipes (user_id, name_recipe, description, meal_type_id, img_url, steps) VALUES ($1, $2, $3, $4, $5, $6)",
-		userID, name_recipe, description, meal_type_id, imageURL, steps,
-	)
+	if tokenErr == nil {
+		_, err = h.DB.Exec(
+			"INSERT INTO recipes (user_id, name_recipe, description, meal_type_id, img_url, steps) VALUES ($1, $2, $3, $4, $5, $6)",
+			userID, name_recipe, description, meal_type_id, imageURL, steps,
+		)
+	} else {
+		guest_name := r.FormValue("guest_name")
+		if guest_name == "" {
+			http.Error(w, "Missing required fields", http.StatusBadRequest)
+			return
+		}
+
+		_, err = h.DB.Exec(
+			"INSERT INTO recipes (guest_name, name_recipe, description, meal_type_id, img_url, steps) VALUES ($1, $2, $3, $4, $5, $6)",
+			guest_name, name_recipe, description, meal_type_id, imageURL, steps,
+		)
+	}
 
 	if err != nil {
 		log.Println(err)

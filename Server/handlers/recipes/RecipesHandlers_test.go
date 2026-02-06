@@ -161,7 +161,7 @@ func TestPostRecipeGuest_Sucess(t *testing.T)  {
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	rr := httptest.NewRecorder()
 
-	handler.PostRecipeGuest(rr, req)
+	handler.PostRecipe(rr, req)
 
 	if rr.Code != http.StatusCreated {
 		t.Errorf("Expected status 201 Created, got %d", rr.Code)
@@ -205,7 +205,7 @@ func TestPostRecipeUser_Sucess(t *testing.T)  {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	rr := httptest.NewRecorder()
-	handler.PostRecipeUser(rr, req)
+	handler.PostRecipe(rr, req)
 
 	if rr.Code != http.StatusCreated {
 		t.Errorf("Expected status 201 Created, got %d", rr.Code)

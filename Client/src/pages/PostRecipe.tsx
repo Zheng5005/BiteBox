@@ -69,27 +69,15 @@ const PostRecipe: React.FC = () => {
     }
 
     try {
-      if (user) {
-        const response = await axiosInstance.postForm("/recipes/userPost", formData);
-        console.log(response)
-        console.log(response.status)
+      const response = await axiosInstance.postForm("/recipes/post", formData);
+      console.log(response)
+      console.log(response.status)
 
-        if (!response.status) {
-          throw new Error("Error en el registro");
-        }
-
-        cleanForm();
-      } else {
-        const response = await axiosInstance.postForm("/recipes/guestPost", formData);
-        console.log(response)
-        console.log(response.status)
-
-        if (!response.status) {
-          throw new Error("Error en el registro");
-        }
-
-        cleanForm();
+      if (!response.status) {
+        throw new Error("Error en el registro");
       }
+
+      cleanForm();
     } catch (error) {
       setInfo({...info, error: "Error while posting up, please try again"})
     } finally {
