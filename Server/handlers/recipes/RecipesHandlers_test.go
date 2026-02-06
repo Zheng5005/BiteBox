@@ -37,6 +37,7 @@ func TestGetRecipes_Success(t *testing.T)  {
 			COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg 
 		FROM recipes r 
 		LEFT JOIN comments c ON r.id = c.recipe_id 
+		WHERE r.is_active = true
 		GROUP BY r.id
 	`)).WillReturnRows(rows)
 
@@ -90,7 +91,7 @@ func TestGetRecipe_Success(t *testing.T)  {
 		FROM recipes r
 		LEFT JOIN users u ON u.id = r.user_id
 		LEFT JOIN comments c ON c.recipe_id = r.id
-		WHERE r.id = $1
+		WHERE r.id = $1 AND r.is_active = true
 		GROUP BY r.id, u.name, r.guest_name;
 	`)).WithArgs("1").WillReturnRows(rows)
 
@@ -112,6 +113,44 @@ func TestGetRecipe_Success(t *testing.T)  {
 
 	if got.Name != "Carbonara" || got.CreatorName != "Tizio Acaso" {
 		t.Errorf("Unexpected content in response: %v", got)
+	}
+}
+
+func TestGetRecipe_InactiveReturnsNotFound(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("Failed to open mock db: %v", err)
+	}
+	defer db.Close()
+
+	rows := sqlmock.NewRows([]string{"id", "name_recipe", "description", "meal_type_id", "img_url", "creator_name", "avg_rating", "steps"})
+
+	mock.ExpectQuery(regexp.QuoteMeta(`
+		SELECT 
+			r.id,
+			r.name_recipe,
+			r.description,
+			r.meal_type_id,
+			COALESCE(r.img_url, ''),
+			COALESCE(u.name, r.guest_name) AS creator_name,
+			COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg_rating,
+			r.steps
+		FROM recipes r
+		LEFT JOIN users u ON u.id = r.user_id
+		LEFT JOIN comments c ON c.recipe_id = r.id
+		WHERE r.id = $1 AND r.is_active = true
+		GROUP BY r.id, u.name, r.guest_name;
+	`)).WithArgs("1").WillReturnRows(rows)
+
+	handler := NewRecipesHandler(db, "other_key")
+
+	req := httptest.NewRequest(http.MethodGet, "/api/recipes/1", nil)
+	rr := httptest.NewRecorder()
+
+	handler.RecipeONEHandler(rr, req)
+
+	if rr.Code != http.StatusNotFound {
+		t.Errorf("Expected 404 Not Found for inactive recipe, got %d", rr.Code)
 	}
 }
 
