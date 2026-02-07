@@ -30,9 +30,6 @@ const Login: React.FC = () => {
         localStorage.setItem("token", res.data.token)
       }
 
-      // Obtener info del user
-      
-      
       //refresing the page
       setTimeout(() => {
         window.location.href = "/"

@@ -1,6 +1,6 @@
 import { useState } from "react"
-import axiosInstance from "../api/axiosInstance" // Import axiosInstance
-import axios from "axios" // Import axios for error type checking
+import axiosInstance from "../api/axiosInstance"
+import axios from "axios"
 import { Link } from "react-router"
 
 const SignUp: React.FC = () => {
@@ -10,16 +10,15 @@ const SignUp: React.FC = () => {
     password: "",
   })
   const [previewImage, setPreviewImage] = useState<string | ArrayBuffer | null>(null)
-  const [imageFile, setImageFile] = useState<File | null>(null) // Changed type to File | null
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const [info, setInfo] = useState({
     isSubmiting: false,
     error: "",
-    success: false, // Added success state
+    success: false,
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    // Clear previous error messages when user starts typing
     setInfo(prev => ({...prev, error: ""}));
 
     if (name === 'user_name') {
@@ -39,7 +38,7 @@ const SignUp: React.FC = () => {
     const file = e.target.files ? e.target.files[0] : null;
     if (!file) return;
 
-    setInfo(prev => ({...prev, error: ""})); // Clear image related errors
+    setInfo(prev => ({...prev, error: ""}));
 
     if (!file.type.match('image.*')) {
       setInfo(prev => ({...prev, error: "Only PNG or JPEG images are allowed."}))
@@ -64,7 +63,7 @@ const SignUp: React.FC = () => {
     e.preventDefault();
     if (info.isSubmiting) return
 
-    setInfo(prev => ({...prev, isSubmiting: true, error: "", success: false})) // Reset states
+    setInfo(prev => ({...prev, isSubmiting: true, error: "", success: false}))
 
     const formData = new FormData();
     formData.append("name", form.user_name);
@@ -77,17 +76,15 @@ const SignUp: React.FC = () => {
     try {
       const response = await axiosInstance.postForm("/auth/signup", formData);
 
-      if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
+      if (response.status == 201) {
         setInfo(prev => ({...prev, success: true}));
-        // Optionally redirect or show success message
         setTimeout(() => {
-          window.location.href = "/" // Redirect to home or dashboard
+          window.location.href = "/login"
         }, 1500)
       } else {
         setInfo(prev => ({...prev, error: response.data.message || "Sign up failed."}));
       }
-      cleanForm(); // Clear form after successful submission
+      cleanForm();
     } catch (err) {
       console.error("Error during sign up:", err);
       if (axios.isAxiosError(err) && err.response) {
