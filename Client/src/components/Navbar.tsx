@@ -23,7 +23,9 @@ const Navbar: React.FC = () => {
           {user ? (
             // If user is authenticated
             <>
-              <Avatar size={12} />
+              <Link to="/profile">
+                <Avatar size={8} />
+              </Link>
               <button onClick={logout} className="px-3 py-1 text-sm text-red-600 border border-red-600 rounded-md hover:bg-red-50 transition">
                   Logout
               </button>
