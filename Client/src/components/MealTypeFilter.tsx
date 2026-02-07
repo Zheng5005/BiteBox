@@ -1,7 +1,4 @@
-export interface MealType {
-  id: number;
-  name: string;
-}
+import type { MealType } from '../types';
 
 export interface MealTypeFilterProps {
   mealTypes: MealType[];

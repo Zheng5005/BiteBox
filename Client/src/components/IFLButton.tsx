@@ -1,8 +1,5 @@
 import { useNavigate } from "react-router"
-
-interface Recipe {
-  id: number
-}
+import type { Recipe } from '../types'
 
 interface IFLButtonProps {
   recipes: Recipe[]

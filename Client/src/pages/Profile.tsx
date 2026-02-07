@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Avatar from '../components/Avatar';
-import RecipeCard, { type Recipe } from '../components/RecipeCard';
+import RecipeCard from '../components/RecipeCard';
+import type { Recipe } from '../types';
 import axiosInstance from '../api/axiosInstance';
 
 const Profile: React.FC = () => {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { MealType } from "../components/MealTypeFilter";
+import type { MealType } from "../types";
 
 export function useMealTypes() {
   const [mealTypes, setMealTypes] = useState<MealType[]>([])

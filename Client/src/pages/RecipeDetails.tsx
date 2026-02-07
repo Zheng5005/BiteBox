@@ -3,28 +3,10 @@ import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../api/axiosInstance'; // Import axiosInstance
 import axios from 'axios';
 import { useParams } from 'react-router';
-
-interface Recipe {
-  id: number;
-  name_recipe: string;
-  description: string;
-  meal_type_id: string;
-  img_url: string;
-  creator_name: string;
-  rating: number;
-  steps: string[];
-}
-
-interface Comment {
-  id: number;
-  user_name: string;
-  recipe_id: string;
-  comment: string;
-  rating: number;
-}
+import type { RecipeDetail, Comment } from '../types';
 
 const RecipeDetails: React.FC = () => {
-  const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [recipe, setRecipe] = useState<RecipeDetail | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [activeTab, setActiveTab] = useState<string>("comments")
   const [newComment, setNewComment] = useState({
@@ -73,10 +55,6 @@ const RecipeDetails: React.FC = () => {
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.comment.trim() || newComment.rating == 0) return;
-
-    // Token is now handled by the axios interceptor, no need to get it manually here
-    // const token = localStorage.getItem("token")
-    // if (!token) return
 
     try {
       await axiosInstance.post(`/comments/post/${id}`, { 

@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import IFLButton from '../components/IFLButton';
 import MealTypeFilter from '../components/MealTypeFilter';
-import RecipeCard, { type Recipe } from '../components/RecipeCard';
+import RecipeCard from '../components/RecipeCard';
+import type { Recipe } from '../types';
 import { useMealTypes } from '../hooks/useMealTypes';
 import axiosInstance from '../api/axiosInstance';
 

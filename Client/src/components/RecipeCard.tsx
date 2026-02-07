@@ -1,13 +1,5 @@
 import { Link } from 'react-router';
-
-export interface Recipe {
-  id: number;
-  name_recipe: string;
-  description: string;
-  meal_type_id: number;
-  image: string;
-  rating: number;
-}
+import type { Recipe } from '../types';
 
 interface RecipeCardProps {
   recipe: Recipe;
