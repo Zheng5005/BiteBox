@@ -1,6 +1,6 @@
 import { useState } from "react"
-import axiosInstance from "../api/axiosInstance";
 import axios from "axios";
+import { login } from "../api/auth";
 import { Link } from "react-router";
 
 const Login: React.FC = () => {
@@ -24,7 +24,7 @@ const Login: React.FC = () => {
   
     setInfo(prev => ({...prev, isSubmiting: true, error: ""}));
     try {
-      const res = await axiosInstance.post("/auth/login", form);
+      const res = await login(form.email, form.password);
 
       if(res.data.token){
         localStorage.setItem("token", res.data.token)

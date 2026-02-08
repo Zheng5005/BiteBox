@@ -4,7 +4,7 @@ import MealTypeFilter from '../components/MealTypeFilter';
 import RecipeCard from '../components/RecipeCard';
 import type { Recipe } from '../types';
 import { useMealTypes } from '../hooks/useMealTypes';
-import axiosInstance from '../api/axiosInstance';
+import { getRecipes } from '../api/recipes';
 
 const MainPage: React.FC = () => {
   const [search, setSearch] = useState<string>('');
@@ -14,7 +14,7 @@ const MainPage: React.FC = () => {
 
   async function fetchRecipes(): Promise<void>{
     try {
-      const res = await axiosInstance.get('/recipes');
+      const res = await getRecipes();
       setRecipesArray(res.data);
     } catch (error) {
       console.error("Failed to fetch recipes:", error);

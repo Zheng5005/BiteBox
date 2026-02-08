@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import axiosInstance from '../api/axiosInstance'; // Import axiosInstance
 import axios from 'axios';
 import { useParams } from 'react-router';
 import type { RecipeDetail, Comment } from '../types';
+import { getRecipeById } from '../api/recipes';
+import { getComments, postComment } from '../api/comments';
 
 const RecipeDetails: React.FC = () => {
   const [recipe, setRecipe] = useState<RecipeDetail | null>(null);
@@ -19,7 +20,7 @@ const RecipeDetails: React.FC = () => {
 
   const fetchComments = async () => {
     try {
-      const res = await axiosInstance.get(`/comments/${id}`);
+      const res = await getComments(id!);
       setComments(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Failed to fetch comments:", err);
@@ -30,7 +31,7 @@ const RecipeDetails: React.FC = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const recipeRes = await axiosInstance.get(`/recipes/${id}`);
+        const recipeRes = await getRecipeById(id!);
         setRecipe(recipeRes.data);
 
         await fetchComments()
@@ -57,10 +58,7 @@ const RecipeDetails: React.FC = () => {
     if (!newComment.comment.trim() || newComment.rating == 0) return;
 
     try {
-      await axiosInstance.post(`/comments/post/${id}`, { 
-        comment: newComment.comment, 
-        rating: newComment.rating 
-      });
+      await postComment(id!, newComment.comment, newComment.rating);
 
       setNewComment({
         comment: "",

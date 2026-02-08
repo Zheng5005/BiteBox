@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import Avatar from '../components/Avatar';
 import RecipeCard from '../components/RecipeCard';
 import type { Recipe } from '../types';
-import axiosInstance from '../api/axiosInstance';
+import { getUserRecipes } from '../api/users';
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
@@ -12,16 +12,7 @@ const Profile: React.FC = () => {
   useEffect(() => {
     async function fetchUserRecipes() {
       try {
-        const res = await axiosInstance.get('/users');
-        const mapped = res.data.map((r: { id: string; name_recipe: string; description: string; meal_type_id: string; img_url: string; rating: string }) => ({
-          id: Number(r.id),
-          name_recipe: r.name_recipe,
-          description: r.description,
-          meal_type_id: Number(r.meal_type_id),
-          image: r.img_url,
-          rating: Number(r.rating),
-        }));
-        setRecipes(mapped);
+        setRecipes(await getUserRecipes());
       } catch (error) {
         console.error('Failed to fetch user recipes:', error);
       }

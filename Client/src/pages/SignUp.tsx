@@ -1,6 +1,6 @@
 import { useState } from "react"
-import axiosInstance from "../api/axiosInstance"
 import axios from "axios"
+import { signup } from "../api/auth"
 import { Link } from "react-router"
 
 const SignUp: React.FC = () => {
@@ -74,7 +74,7 @@ const SignUp: React.FC = () => {
     }
 
     try {
-      const response = await axiosInstance.postForm("/auth/signup", formData);
+      const response = await signup(formData);
 
       if (response.status == 201) {
         setInfo(prev => ({...prev, success: true}));

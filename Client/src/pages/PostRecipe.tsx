@@ -2,8 +2,8 @@ import { useState } from "react"
 import { useAuth } from "../context/AuthContext"
 import { useMealTypes } from "../hooks/useMealTypes"
 import MealTypeFilter from "../components/MealTypeFilter"
-import axiosInstance from "../api/axiosInstance"
-import axios from "axios" // Import axios for error type checking
+import axios from "axios"
+import { postRecipe } from "../api/recipes"
 
 const PostRecipe: React.FC = () => {
   const mealTypes = useMealTypes()
@@ -70,7 +70,7 @@ const PostRecipe: React.FC = () => {
     }
 
     try {
-      const response = await axiosInstance.postForm("/recipes/post", formData);
+      const response = await postRecipe(formData);
 
       if (response.status === 201) { // Assuming 201 Created for successful post
         setInfo(prev => ({...prev, success: true}))
