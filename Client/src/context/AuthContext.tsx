@@ -1,5 +1,7 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode, useCallback } from "react";
 import type { User } from "../types";
+import { setOn401 } from "../api/axiosInstance";
+import { useNavigate } from "react-router";
 
 interface AuthContextType {
   user: User | null;
@@ -16,6 +18,12 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps){
   const [user, setUser] = useState<User | null >(null)
   const token = localStorage.getItem("token")
+  const navigate = useNavigate();
+
+  const logout = useCallback(() => {
+    localStorage.removeItem("token")
+    setUser(null)
+  }, [])
 
   useEffect(() => {
     if (token) {
@@ -26,12 +34,14 @@ export function AuthProvider({ children }: AuthProviderProps){
         logout()
       }
     }
-  }, [])
+  }, [token, logout])
 
-  const logout = () => {
-    localStorage.removeItem("token")
-    setUser(null)
-  }
+  useEffect(() => {
+    setOn401(() => {
+      logout();
+      navigate("/login");
+    });
+  }, [logout, navigate]);
 
   return (
     <AuthContext.Provider value={{

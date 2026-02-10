@@ -8,6 +8,12 @@ const instance = axios.create({
   },
 });
 
+let on401Callback: (() => void) | null = null;
+
+export const setOn401 = (callback: () => void) => {
+  on401Callback = callback;
+};
+
 // Add a request interceptor to include the token
 instance.interceptors.request.use(
   (config) => {
@@ -18,6 +24,19 @@ instance.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add a response interceptor to handle 401 errors
+instance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      if (on401Callback) {
+        on401Callback();
+      }
+    }
     return Promise.reject(error);
   }
 );
