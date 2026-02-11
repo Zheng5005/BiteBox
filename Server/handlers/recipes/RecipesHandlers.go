@@ -24,7 +24,8 @@ func (h *RecipesHandler) RecipeHandler(w http.ResponseWriter, r *http.Request) {
 			r.description, 
 			r.meal_type_id, 
 			COALESCE(r.img_url, ''),
-			COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg 
+			COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg,
+			r.likes
 		FROM recipes r 
 		LEFT JOIN comments c ON r.id = c.recipe_id 
 		WHERE r.is_active = true
@@ -39,7 +40,7 @@ func (h *RecipesHandler) RecipeHandler(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var r RecipesMainPage
-		if err := rows.Scan(&r.ID, &r.Name, &r.Description, &r.MealTypeID, &r.ImgURL, &r.Rating); err != nil {
+		if err := rows.Scan(&r.ID, &r.Name, &r.Description, &r.MealTypeID, &r.ImgURL, &r.Rating, &r.Likes); err != nil {
 			log.Println(err)
 			http.Error(w, "Scan error", http.StatusInternalServerError)
 			return
@@ -72,7 +73,8 @@ func (h *RecipesHandler) RecipeONEHandler(w http.ResponseWriter, r *http.Request
 				COALESCE(r.img_url, ''),
 				COALESCE(u.name, r.guest_name) AS creator_name,
 				COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg_rating,
-				r.steps
+				r.steps,
+				r.likes
 			FROM recipes r
 			LEFT JOIN users u ON u.id = r.user_id
 			LEFT JOIN comments c ON c.recipe_id = r.id
@@ -91,6 +93,7 @@ func (h *RecipesHandler) RecipeONEHandler(w http.ResponseWriter, r *http.Request
 			&recipe.CreatorName,
 			&recipe.Rating,
 			&recipe.Steps,
+			&recipe.Likes,
 		)
 
 		if err == sql.ErrNoRows {

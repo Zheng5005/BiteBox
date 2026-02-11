@@ -22,6 +22,7 @@ type RecipesMainPage struct {
 	ImgURL string `json:"img_url"`
 
 	Rating string `json:"rating"`
+	Likes int `json:"likes"`
 }
 
 //Type crafted with recipe detail page in mind
@@ -34,6 +35,7 @@ type RecipeDetail struct {
 	CreatorName string `json:"creator_name"`
 	Rating      string `json:"rating"`
 	Steps       string `json:"steps"`
+	Likes 			int 	 `json:"likes"`
 }
 
 type RecipesHandler struct {

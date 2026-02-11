@@ -43,9 +43,9 @@ Legend: 🟢 Low | 🟡 Medium | 🔴 High
 
 **Steps**
 
-1. Load meal types at startup
+1. Load meal types at startup ✅
 2. Cache in memory
-3. Validate FK usage on recipes
+3. Validate FK usage on recipes ✅
 
 **Done When**
 

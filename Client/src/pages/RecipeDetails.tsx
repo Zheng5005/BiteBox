@@ -101,6 +101,10 @@ const RecipeDetails: React.FC = () => {
         ) : (
           <div className="text-yellow-500 text-lg">⭐ {recipe.rating}</div>
         )}
+        <div className="flex items-center text-red-500 text-lg">
+          <span className="mr-1">❤</span>
+          <span>{recipe.likes ? recipe.likes : 0}</span>
+        </div>
         <p className="text-gray-700">{recipe.description}</p>
         <div>
           <h2 className="text-xl font-semibold mt-4 mb-2">Steps:</h2>
