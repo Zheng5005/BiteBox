@@ -7,6 +7,7 @@ import RecipeDetails from "./pages/RecipeDetails";
 import { AuthProvider } from "./context/AuthContext";
 import PostRecipe from "./pages/PostRecipe";
 import Profile from "./pages/Profile";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App: React.FC = () => {
   return <>
@@ -21,7 +22,11 @@ const App: React.FC = () => {
         <Route path="/post" element={<PostRecipe />} />
 
         {/* Auth Users */}
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } />
       </Routes>
     </AuthProvider>
   </>
