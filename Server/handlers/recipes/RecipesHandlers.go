@@ -25,9 +25,10 @@ func (h *RecipesHandler) RecipeHandler(w http.ResponseWriter, r *http.Request) {
 			r.meal_type_id, 
 			COALESCE(r.img_url, ''),
 			COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg,
-			r.likes
+			COUNT(DISTINCT rl.id) AS likes
 		FROM recipes r 
 		LEFT JOIN comments c ON r.id = c.recipe_id 
+		LEFT JOIN recipe_likes rl ON r.id = rl.recipe_id
 		WHERE r.is_active = true
 		GROUP BY r.id`)
 	if err != nil {
@@ -74,10 +75,11 @@ func (h *RecipesHandler) RecipeONEHandler(w http.ResponseWriter, r *http.Request
 				COALESCE(u.name, r.guest_name) AS creator_name,
 				COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg_rating,
 				r.steps,
-				r.likes
+				COUNT(DISTINCT rl.id) AS likes
 			FROM recipes r
 			LEFT JOIN users u ON u.id = r.user_id
 			LEFT JOIN comments c ON c.recipe_id = r.id
+			LEFT JOIN recipe_likes rl ON rl.recipe_id = r.id
 			WHERE r.id = $1 AND r.is_active = true
 			GROUP BY r.id, u.name, r.guest_name;
 		`

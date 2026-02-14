@@ -231,6 +231,64 @@ func (h *UserHandler) EditRecipeAuth(w http.ResponseWriter, r *http.Request)  {
 	w.Write([]byte("Recipe Updated"))
 }
 
+func (h *UserHandler) LikeRecipe(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	id := strings.TrimPrefix(r.URL.Path, "/api/users/like/")
+	if id == "" {
+		http.Error(w, "Missing recipe ID", http.StatusBadRequest)
+		return
+	}
+
+	userID, err := utils.ParseToken(r, h.SecretKey)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	// Check if the recipe exists and is active
+	var exists bool
+	err = h.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM recipes WHERE id = $1 AND is_active = true)", id).Scan(&exists)
+	if err != nil || !exists {
+		http.Error(w, "Recipe not found", http.StatusNotFound)
+		return
+	}
+
+	// Toggle like: if already liked, remove it; otherwise, add it
+	var likeExists bool
+	err = h.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM recipe_likes WHERE user_id = $1 AND recipe_id = $2)", userID, id).Scan(&likeExists)
+	if err != nil {
+		log.Println("Error checking like:", err)
+		http.Error(w, "Error processing like", http.StatusInternalServerError)
+		return
+	}
+
+	if likeExists {
+		_, err = h.DB.Exec("DELETE FROM recipe_likes WHERE user_id = $1 AND recipe_id = $2", userID, id)
+		if err != nil {
+			log.Println("Error removing like:", err)
+			http.Error(w, "Error removing like", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]interface{}{"liked": false, "message": "Like removed"})
+		return
+	}
+
+	_, err = h.DB.Exec("INSERT INTO recipe_likes (user_id, recipe_id) VALUES ($1, $2)", userID, id)
+	if err != nil {
+		log.Println("Error adding like:", err)
+		http.Error(w, "Error adding like", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{"liked": true, "message": "Like added"})
+}
+
 func (h *UserHandler) GetRecipesByUser(w http.ResponseWriter, r *http.Request)  {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

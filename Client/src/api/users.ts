@@ -10,6 +10,16 @@ interface UserRecipeRaw {
   rating: string;
 }
 
+export interface LikeResponse {
+  liked: boolean;
+  message: string;
+}
+
+export async function likeRecipe(recipeId: string): Promise<LikeResponse> {
+  const res = await axiosInstance.post<LikeResponse>(`/users/like/${recipeId}`);
+  return res.data;
+}
+
 export async function getUserRecipes(): Promise<Recipe[]> {
   const res = await axiosInstance.get<UserRecipeRaw[]>('/users');
   return res.data.map((r) => ({

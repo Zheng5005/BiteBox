@@ -5,6 +5,7 @@ import { useParams } from 'react-router';
 import type { RecipeDetail, Comment } from '../types';
 import { getRecipeById } from '../api/recipes';
 import { getComments, postComment } from '../api/comments';
+import { likeRecipe } from '../api/users';
 
 const RecipeDetails: React.FC = () => {
   const [recipe, setRecipe] = useState<RecipeDetail | null>(null);
@@ -14,6 +15,7 @@ const RecipeDetails: React.FC = () => {
     comment: "",
     rating: 1
   });
+  const [likeLoading, setLikeLoading] = useState(false);
   const [error, setError] = useState<string | null>(null); // State for error handling
   const { id } = useParams()
   const { user } = useAuth();
@@ -79,6 +81,22 @@ const RecipeDetails: React.FC = () => {
     }
   };
 
+  const handleLike = async () => {
+    if (!user || likeLoading) return;
+    setLikeLoading(true);
+    try {
+      const res = await likeRecipe(id!);
+      setRecipe(prev => prev ? {
+        ...prev,
+        likes: res.liked ? prev.likes + 1 : prev.likes - 1
+      } : prev);
+    } catch (err) {
+      console.error("Failed to toggle like:", err);
+    } finally {
+      setLikeLoading(false);
+    }
+  };
+
   if (error) return <p className="text-center text-red-500">{error}</p>;
   if (!recipe) return <p className="text-center">Loading recipe...</p>;
 
@@ -101,9 +119,22 @@ const RecipeDetails: React.FC = () => {
         ) : (
           <div className="text-yellow-500 text-lg">⭐ {recipe.rating}</div>
         )}
-        <div className="flex items-center text-red-500 text-lg">
-          <span className="mr-1">❤</span>
-          <span>{recipe.likes ? recipe.likes : 0}</span>
+        <div className="flex items-center text-lg">
+          {user ? (
+            <button
+              onClick={handleLike}
+              disabled={likeLoading}
+              className="flex items-center text-red-500 hover:text-red-600 transition cursor-pointer disabled:opacity-50"
+            >
+              <span className="mr-1">❤</span>
+              <span>{recipe.likes ?? 0}</span>
+            </button>
+          ) : (
+            <div className="flex items-center text-red-500">
+              <span className="mr-1">❤</span>
+              <span>{recipe.likes ?? 0}</span>
+            </div>
+          )}
         </div>
         <p className="text-gray-700">{recipe.description}</p>
         <div>
