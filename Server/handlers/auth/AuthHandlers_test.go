@@ -33,8 +33,12 @@ func TestSignIn_Success(t *testing.T)  {
 	req := httptest.NewRequest(http.MethodPost, "/api/auth/signin", &body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO users (name, email, password, url_photo)")).
+	mock.ExpectQuery(regexp.QuoteMeta("INSERT INTO users (name, email, password, url_photo) VALUES ($1, $2, $3, $4) RETURNING id")).
 		WithArgs("Jane", "jd@gmail.com", sqlmock.AnyArg(), "").
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO cookbooks (user_id, name, description) VALUES ($1, $2, $3)")).
+		WithArgs(1, "My Cookbook", "Your personal recipe collection").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	rr := httptest.NewRecorder()
