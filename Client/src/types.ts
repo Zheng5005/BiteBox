@@ -11,6 +11,7 @@ export interface Recipe {
   meal_type_id: number;
   image: string;
   rating: number;
+  likes: number;
 }
 
 export interface RecipeDetail extends Recipe {

@@ -2,18 +2,18 @@
 
 Goal: implement a **stable MVP client** that supports auth, recipe interaction, and personalization signals.
 
-Legend: 🟢 Low | 🟡 Medium | 🔴 High
+Legend: 🟢 Low | 🟡 Medium | 🔴 High | ✅ Done
 
 ---
 
-## C1. Auth Session Handling 🟡
+## C1. Auth Session Handling ✅
 
 **Steps**
 
-1. Create `AuthContext` (user, token, status)
-2. Store JWT in memory (optional: localStorage restore)
-3. Attach token via fetch/axios interceptor
-4. Handle `401` globally → logout + redirect
+1. Create `AuthContext` (user, token, status) ✅
+2. Store JWT in memory (optional: localStorage restore) ✅
+3. Attach token via fetch/axios interceptor ✅
+4. Handle `401` globally → logout + redirect ✅
 
 **Edge Cases**
 
@@ -51,9 +51,9 @@ Legend: 🟢 Low | 🟡 Medium | 🔴 High
 
 **Steps**
 
-1. Add route `/recipes/:id`
-2. Fetch recipe by ID
-3. Render ingredients, steps, meal type
+1. Add route `/recipes/:id` ✅
+2. Fetch recipe by ID ✅
+3. Render ingredients, steps, meal type ✅
 4. Add like/save actions
 
 **Edge Cases**
@@ -72,9 +72,9 @@ Legend: 🟢 Low | 🟡 Medium | 🔴 High
 
 **Steps**
 
-1. Build recipe form component
+1. Build recipe form component ✅
 2. Add client-side validation
-3. Meal type selector
+3. Meal type selector ✅
 4. Submit with optimistic UI
 
 **Edge Cases**

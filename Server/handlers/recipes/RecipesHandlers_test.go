@@ -23,9 +23,9 @@ func TestGetRecipes_Success(t *testing.T)  {
 	defer db.Close()
 
 	// expected rows
-	rows := sqlmock.NewRows([]string{"id", "name_recipe", "description", "meal_type_id", "img_url", "rating"}).
-		AddRow("1", "Carbonara", "Best pasta in Italy", "2", "", "5").
-		AddRow("2", "Pupusas", "La mejor comida de El Salvador", "1", "", "5")
+	rows := sqlmock.NewRows([]string{"id", "name_recipe", "description", "meal_type_id", "img_url", "rating", "likes"}).
+		AddRow("1", "Carbonara", "Best pasta in Italy", "2", "", "5", 3).
+		AddRow("2", "Pupusas", "La mejor comida de El Salvador", "1", "", "5", 0)
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
 		SELECT 
@@ -34,9 +34,11 @@ func TestGetRecipes_Success(t *testing.T)  {
 			r.description, 
 			r.meal_type_id, 
 			COALESCE(r.img_url, ''),
-			COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg 
+			COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg,
+			COUNT(DISTINCT rl.id) AS likes
 		FROM recipes r 
 		LEFT JOIN comments c ON r.id = c.recipe_id 
+		LEFT JOIN recipe_likes rl ON r.id = rl.recipe_id
 		WHERE r.is_active = true
 		GROUP BY r.id
 	`)).WillReturnRows(rows)
@@ -75,8 +77,8 @@ func TestGetRecipe_Success(t *testing.T)  {
 	defer db.Close()
 
 	// expected rows
-	rows := sqlmock.NewRows([]string{"id", "name_recipe", "description", "meal_type_id", "img_url", "creator_name", "avg_rating", "steps"}).
-		AddRow("1", "Carbonara", "Best pasta in Italy", "2", "", "Tizio Acaso",  "5", "Put pancetta in pasta")
+	rows := sqlmock.NewRows([]string{"id", "name_recipe", "description", "meal_type_id", "img_url", "creator_name", "avg_rating", "steps", "likes"}).
+		AddRow("1", "Carbonara", "Best pasta in Italy", "2", "", "Tizio Acaso",  "5", "Put pancetta in pasta", 2)
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
 		SELECT 
@@ -87,10 +89,12 @@ func TestGetRecipe_Success(t *testing.T)  {
 			COALESCE(r.img_url, ''),
 			COALESCE(u.name, r.guest_name) AS creator_name,
 			COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg_rating,
-			r.steps
+			r.steps,
+			COUNT(DISTINCT rl.id) AS likes
 		FROM recipes r
 		LEFT JOIN users u ON u.id = r.user_id
 		LEFT JOIN comments c ON c.recipe_id = r.id
+		LEFT JOIN recipe_likes rl ON rl.recipe_id = r.id
 		WHERE r.id = $1 AND r.is_active = true
 		GROUP BY r.id, u.name, r.guest_name;
 	`)).WithArgs("1").WillReturnRows(rows)
@@ -123,7 +127,7 @@ func TestGetRecipe_InactiveReturnsNotFound(t *testing.T) {
 	}
 	defer db.Close()
 
-	rows := sqlmock.NewRows([]string{"id", "name_recipe", "description", "meal_type_id", "img_url", "creator_name", "avg_rating", "steps"})
+	rows := sqlmock.NewRows([]string{"id", "name_recipe", "description", "meal_type_id", "img_url", "creator_name", "avg_rating", "steps", "likes"})
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
 		SELECT 
@@ -134,10 +138,12 @@ func TestGetRecipe_InactiveReturnsNotFound(t *testing.T) {
 			COALESCE(r.img_url, ''),
 			COALESCE(u.name, r.guest_name) AS creator_name,
 			COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS avg_rating,
-			r.steps
+			r.steps,
+			COUNT(DISTINCT rl.id) AS likes
 		FROM recipes r
 		LEFT JOIN users u ON u.id = r.user_id
 		LEFT JOIN comments c ON c.recipe_id = r.id
+		LEFT JOIN recipe_likes rl ON rl.recipe_id = r.id
 		WHERE r.id = $1 AND r.is_active = true
 		GROUP BY r.id, u.name, r.guest_name;
 	`)).WithArgs("1").WillReturnRows(rows)

@@ -13,10 +13,10 @@ The long-term goal is to evolve from a simple recipe finder into a learning syst
 ### 1. Recipe Platform
 - Recipes are first-class content
 - Users can:
-  - Create recipes
-  - View recipe details
+  - Create recipes ✅
+  - View recipe details ✅
   - Like and save recipes
-  - (Later) comment and share
+  - (Later) comment ✅ and share
 ### 2. Personalization Engine ("For You" Feed)
 - Available only to authenticated users
 - Driven by user behavior and interaction history
@@ -42,9 +42,9 @@ Tracked signals include:
 
 The MVP focuses on validating personalization and retention.
 ### Included
-- User authentication
-- Recipe CRUD
-- Basic feed (chronological or popular)
+- User authentication ✅
+- Recipe CRUD ✅
+- Basic feed (chronological or popular) ✅
 - Like / Save interactions
 - Interaction tracking for personalization
 - AI Chef v1 (text-only recipe generation)

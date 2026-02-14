@@ -22,6 +22,10 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
           <span className="mr-1">⭐</span>
           <span>{recipe.rating > 0.0 ? recipe.rating : "BE THE FIRST ONE TO RATE IT!"}</span>
         </div>
+        <div className="flex items-center text-red-500 mb-2">
+          <span className="mr-1">❤</span>
+          <span>{recipe.likes ? recipe.likes : 0}</span>
+        </div>
         <p className="text-gray-600">{recipe.description}</p>
       </div>
     </Link>
