@@ -11,7 +11,7 @@ export interface Recipe {
   meal_type_id: number;
   image: string;
   rating: number;
-  likes: number;
+  likes?: number;
 }
 
 export interface RecipeDetail extends Recipe {
@@ -31,4 +31,14 @@ export interface Comment {
 export interface MealType {
   id: number;
   name: string;
+}
+
+export interface Cookbook {
+  id: number;
+  user_id: number;
+  name: string;
+  description: string;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
 }
