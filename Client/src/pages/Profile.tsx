@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Avatar from '../components/Avatar';
 import RecipeCard from '../components/RecipeCard';
+import CreateCookbookModal from '../components/CreateCookbookModal';
 import type { Recipe, Cookbook } from '../types';
 import { getUserRecipes } from '../api/users';
 import { getCookbooks } from '../api/cookbooks';
@@ -11,6 +12,15 @@ const Profile: React.FC = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [cookbooks, setCookbooks] = useState<Cookbook[]>([]);
   const [activeTab, setActiveTab] = useState<string>('recipes');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const refreshCookbooks = async () => {
+    try {
+      setCookbooks(await getCookbooks());
+    } catch {
+      console.error('Failed to refresh cookbooks');
+    }
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -83,27 +93,47 @@ const Profile: React.FC = () => {
           </div>
         )
       ) : (
-        cookbooks.length === 0 ? (
-          <p className="text-gray-500">You haven't created any cookbooks yet.</p>
-        ) : (
-          <div className="grid gap-4">
-            {cookbooks.map((cookbook) => (
-              <div key={cookbook.id} className="bg-white shadow-md rounded-2xl p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-bold">{cookbook.name}</h3>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    cookbook.is_public ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {cookbook.is_public ? 'Public' : 'Private'}
-                  </span>
-                </div>
-                {cookbook.description && (
-                  <p className="text-gray-600 text-sm">{cookbook.description}</p>
-                )}
-              </div>
-            ))}
+        <>
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-4 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+            >
+              + Create Cookbook
+            </button>
           </div>
-        )
+          {cookbooks.length === 0 ? (
+            <p className="text-gray-500">You haven't created any cookbooks yet.</p>
+          ) : (
+            <div className="grid gap-4">
+              {cookbooks.map((cookbook) => (
+                <div key={cookbook.id} className="bg-white shadow-md rounded-2xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-bold">{cookbook.name}</h3>
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      cookbook.is_public ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {cookbook.is_public ? 'Public' : 'Private'}
+                    </span>
+                  </div>
+                  {cookbook.description && (
+                    <p className="text-gray-600 text-sm">{cookbook.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {showCreateModal && (
+        <CreateCookbookModal
+          onClose={() => setShowCreateModal(false)}
+          onCreated={() => {
+            setShowCreateModal(false);
+            refreshCookbooks();
+          }}
+        />
       )}
     </div>
   );
