@@ -35,6 +35,12 @@ export async function deleteCookbook(cookbookId: number): Promise<void> {
   await axiosInstance.delete(`/cookbooks/delete/${cookbookId}`);
 }
 
+export async function removeRecipeFromCookbook(cookbookId: number, recipeId: number): Promise<void> {
+  await axiosInstance.delete(`/cookbooks/recipes/remove/${cookbookId}`, {
+    data: { recipe_id: recipeId },
+  });
+}
+
 export async function getCookbookRecipes(cookbookId: string): Promise<{ cookbook: Cookbook; recipes: Recipe[] }> {
   const [cookbooksRes, recipesRes] = await Promise.all([
     axiosInstance.get<Cookbook[]>('/cookbooks'),

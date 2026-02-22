@@ -4,7 +4,7 @@ import RecipeCard from '../components/RecipeCard';
 import EditCookbookModal from '../components/EditCookbookModal';
 import DeleteCookbookModal from '../components/DeleteCookbookModal';
 import type { Recipe, Cookbook } from '../types';
-import { getCookbookRecipes } from '../api/cookbooks';
+import { getCookbookRecipes, removeRecipeFromCookbook } from '../api/cookbooks';
 
 const CookbookRecipes: React.FC = () => {
   const { id } = useParams();
@@ -15,6 +15,8 @@ const CookbookRecipes: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [recipeToRemove, setRecipeToRemove] = useState<Recipe | null>(null);
+  const [removing, setRemoving] = useState(false);
 
   useEffect(() => {
     async function fetchCookbookRecipes() {
@@ -31,6 +33,20 @@ const CookbookRecipes: React.FC = () => {
 
     fetchCookbookRecipes();
   }, [id]);
+
+  const handleRemoveRecipe = async () => {
+    if (!recipeToRemove || !cookbook) return;
+    setRemoving(true);
+    try {
+      await removeRecipeFromCookbook(cookbook.id, recipeToRemove.id);
+      setRecipes((prev) => prev.filter((r) => r.id !== recipeToRemove.id));
+      setRecipeToRemove(null);
+    } catch {
+      setError('Failed to remove recipe.');
+    } finally {
+      setRemoving(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -89,7 +105,7 @@ const CookbookRecipes: React.FC = () => {
       ) : (
         <div className="grid gap-6">
           {recipes.map((recipe) => (
-            <RecipeCard key={recipe.id} recipe={recipe} />
+            <RecipeCard key={recipe.id} recipe={recipe} onRemove={() => setRecipeToRemove(recipe)} />
           ))}
         </div>
       )}
@@ -111,6 +127,43 @@ const CookbookRecipes: React.FC = () => {
           onClose={() => setShowDeleteModal(false)}
           onDeleted={() => navigate('/profile')}
         />
+      )}
+
+      {recipeToRemove && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setRecipeToRemove(null)}>
+          <div
+            className="bg-white rounded-2xl shadow-lg w-full max-w-md mx-4 p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Remove Recipe</h2>
+              <button onClick={() => setRecipeToRemove(null)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">
+                &times;
+              </button>
+            </div>
+
+            <p className="text-gray-700 mb-4">
+              Are you sure you want to remove <span className="font-semibold">{recipeToRemove.name_recipe}</span> from this cookbook?
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setRecipeToRemove(null)}
+                disabled={removing}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRemoveRecipe}
+                disabled={removing}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition disabled:opacity-50"
+              >
+                {removing ? 'Removing...' : 'Remove'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
