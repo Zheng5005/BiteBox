@@ -24,6 +24,13 @@ export async function addRecipeToCookbook(cookbookId: number, recipeId: number, 
   await axiosInstance.post(`/cookbooks/recipes/add/${cookbookId}`, { recipe_id: Number(recipeId), notes });
 }
 
+export async function updateCookbook(
+  cookbookId: number,
+  fields: { name?: string; description?: string; is_public?: boolean },
+): Promise<void> {
+  await axiosInstance.patch(`/cookbooks/edit/${cookbookId}`, fields);
+}
+
 export async function getCookbookRecipes(cookbookId: string): Promise<{ cookbook: Cookbook; recipes: Recipe[] }> {
   const [cookbooksRes, recipesRes] = await Promise.all([
     axiosInstance.get<Cookbook[]>('/cookbooks'),

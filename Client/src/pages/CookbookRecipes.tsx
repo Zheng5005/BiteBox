@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router';
 import RecipeCard from '../components/RecipeCard';
+import EditCookbookModal from '../components/EditCookbookModal';
 import type { Recipe, Cookbook } from '../types';
 import { getCookbookRecipes } from '../api/cookbooks';
 
@@ -10,6 +11,7 @@ const CookbookRecipes: React.FC = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     async function fetchCookbookRecipes() {
@@ -52,11 +54,19 @@ const CookbookRecipes: React.FC = () => {
       <div className="bg-white shadow-md rounded-2xl p-6 mb-8">
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-2xl font-bold">{cookbook.name}</h1>
-          <span className={`text-xs px-2 py-1 rounded-full ${
-            cookbook.is_public ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-          }`}>
-            {cookbook.is_public ? 'Public' : 'Private'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs px-2 py-1 rounded-full ${
+              cookbook.is_public ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+            }`}>
+              {cookbook.is_public ? 'Public' : 'Private'}
+            </span>
+            <button
+              onClick={() => setShowEditModal(true)}
+              className="px-3 py-1 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+            >
+              Edit
+            </button>
+          </div>
         </div>
         {cookbook.description && (
           <p className="text-gray-600">{cookbook.description}</p>
@@ -73,6 +83,17 @@ const CookbookRecipes: React.FC = () => {
             <RecipeCard key={recipe.id} recipe={recipe} />
           ))}
         </div>
+      )}
+
+      {showEditModal && (
+        <EditCookbookModal
+          cookbook={cookbook}
+          onClose={() => setShowEditModal(false)}
+          onUpdated={(updated) => {
+            setCookbook(updated);
+            setShowEditModal(false);
+          }}
+        />
       )}
     </div>
   );
