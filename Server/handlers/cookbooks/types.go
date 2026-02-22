@@ -13,10 +13,13 @@ type Cookbook struct {
 }
 
 type CookbookRecipe struct {
-	ID       int    `json:"id"`
-	RecipeID int    `json:"recipe_id"`
-	AddedAt  string `json:"added_at"`
-	Notes    string `json:"notes"`
+	ID          string `json:"id"`
+	Name        string `json:"name_recipe"`
+	Description string `json:"description"`
+	MealTypeID  string `json:"meal_type_id"`
+	ImgURL      string `json:"img_url"`
+	Rating      string `json:"rating"`
+	Likes       int    `json:"likes"`
 }
 
 type CookbookHandler struct {

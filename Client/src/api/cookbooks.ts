@@ -1,5 +1,15 @@
 import axiosInstance from './axiosInstance';
-import type { Cookbook } from '../types';
+import type { Cookbook, Recipe } from '../types';
+
+interface CookbookRecipeRaw {
+  id: string;
+  name_recipe: string;
+  description: string;
+  meal_type_id: string;
+  img_url: string;
+  rating: string;
+  likes: number;
+}
 
 export async function getCookbooks(): Promise<Cookbook[]> {
   const res = await axiosInstance.get<Cookbook[]>('/cookbooks');
@@ -12,4 +22,26 @@ export async function createCookbook(name: string, description: string, is_publi
 
 export async function addRecipeToCookbook(cookbookId: number, recipeId: number, notes = ''): Promise<void> {
   await axiosInstance.post(`/cookbooks/recipes/add/${cookbookId}`, { recipe_id: Number(recipeId), notes });
+}
+
+export async function getCookbookRecipes(cookbookId: string): Promise<{ cookbook: Cookbook; recipes: Recipe[] }> {
+  const [cookbooksRes, recipesRes] = await Promise.all([
+    axiosInstance.get<Cookbook[]>('/cookbooks'),
+    axiosInstance.get<CookbookRecipeRaw[]>(`/cookbooks/recipes/${cookbookId}`),
+  ]);
+
+  const cookbook = (cookbooksRes.data ?? []).find((c) => c.id === Number(cookbookId));
+  if (!cookbook) throw new Error('Cookbook not found');
+
+  const recipes = (recipesRes.data ?? []).map((r) => ({
+    id: Number(r.id),
+    name_recipe: r.name_recipe,
+    description: r.description,
+    meal_type_id: Number(r.meal_type_id),
+    image: r.img_url,
+    rating: Number(r.rating),
+    likes: r.likes,
+  }));
+
+  return { cookbook, recipes };
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import Avatar from '../components/Avatar';
 import RecipeCard from '../components/RecipeCard';
@@ -107,7 +108,7 @@ const Profile: React.FC = () => {
           ) : (
             <div className="grid gap-4">
               {cookbooks.map((cookbook) => (
-                <div key={cookbook.id} className="bg-white shadow-md rounded-2xl p-4">
+                <Link key={cookbook.id} to={`/cookbook/${cookbook.id}`} className="block bg-white shadow-md rounded-2xl p-4 hover:shadow-lg transition">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-bold">{cookbook.name}</h3>
                     <span className={`text-xs px-2 py-1 rounded-full ${
@@ -119,7 +120,7 @@ const Profile: React.FC = () => {
                   {cookbook.description && (
                     <p className="text-gray-600 text-sm">{cookbook.description}</p>
                   )}
-                </div>
+                </Link>
               ))}
             </div>
           )}

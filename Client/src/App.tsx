@@ -7,6 +7,7 @@ import RecipeDetails from "./pages/RecipeDetails";
 import { AuthProvider } from "./context/AuthContext";
 import PostRecipe from "./pages/PostRecipe";
 import Profile from "./pages/Profile";
+import CookbookRecipes from "./pages/CookbookRecipes";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App: React.FC = () => {
@@ -25,6 +26,11 @@ const App: React.FC = () => {
         <Route path="/profile" element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        } />
+        <Route path="/cookbook/:id" element={
+          <ProtectedRoute>
+            <CookbookRecipes />
           </ProtectedRoute>
         } />
       </Routes>

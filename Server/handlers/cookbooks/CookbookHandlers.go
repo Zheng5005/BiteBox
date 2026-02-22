@@ -270,9 +270,20 @@ func (h *CookbookHandler) GetCookbookRecipes(w http.ResponseWriter, r *http.Requ
 	}
 
 	rows, err := h.DB.Query(`
-		SELECT cr.id, cr.recipe_id, cr.added_at, COALESCE(cr.notes, '')
+		SELECT 
+			r.id,
+			r.name_recipe,
+			r.description,
+			r.meal_type_id,
+			COALESCE(r.img_url, ''),
+			COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS rating,
+			COUNT(DISTINCT rl.id) AS likes
 		FROM cookbook_recipes cr
-		WHERE cr.cookbook_id = $1`, id)
+		JOIN recipes r ON r.id = cr.recipe_id
+		LEFT JOIN comments c ON c.recipe_id = r.id
+		LEFT JOIN recipe_likes rl ON rl.recipe_id = r.id
+		WHERE cr.cookbook_id = $1 AND r.is_active = true
+		GROUP BY r.id`, id)
 	if err != nil {
 		http.Error(w, "Query error", http.StatusInternalServerError)
 		return
@@ -283,7 +294,7 @@ func (h *CookbookHandler) GetCookbookRecipes(w http.ResponseWriter, r *http.Requ
 
 	for rows.Next() {
 		var cr CookbookRecipe
-		if err := rows.Scan(&cr.ID, &cr.RecipeID, &cr.AddedAt, &cr.Notes); err != nil {
+		if err := rows.Scan(&cr.ID, &cr.Name, &cr.Description, &cr.MealTypeID, &cr.ImgURL, &cr.Rating, &cr.Likes); err != nil {
 			log.Println(err)
 			http.Error(w, "Scan error", http.StatusInternalServerError)
 			return
