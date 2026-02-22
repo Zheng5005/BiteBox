@@ -31,6 +31,10 @@ export async function updateCookbook(
   await axiosInstance.patch(`/cookbooks/edit/${cookbookId}`, fields);
 }
 
+export async function deleteCookbook(cookbookId: number): Promise<void> {
+  await axiosInstance.delete(`/cookbooks/delete/${cookbookId}`);
+}
+
 export async function getCookbookRecipes(cookbookId: string): Promise<{ cookbook: Cookbook; recipes: Recipe[] }> {
   const [cookbooksRes, recipesRes] = await Promise.all([
     axiosInstance.get<Cookbook[]>('/cookbooks'),

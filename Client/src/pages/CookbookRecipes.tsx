@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useNavigate } from 'react-router';
 import RecipeCard from '../components/RecipeCard';
 import EditCookbookModal from '../components/EditCookbookModal';
+import DeleteCookbookModal from '../components/DeleteCookbookModal';
 import type { Recipe, Cookbook } from '../types';
 import { getCookbookRecipes } from '../api/cookbooks';
 
 const CookbookRecipes: React.FC = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [cookbook, setCookbook] = useState<Cookbook | null>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     async function fetchCookbookRecipes() {
@@ -66,6 +69,12 @@ const CookbookRecipes: React.FC = () => {
             >
               Edit
             </button>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="px-3 py-1 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+            >
+              Delete
+            </button>
           </div>
         </div>
         {cookbook.description && (
@@ -93,6 +102,14 @@ const CookbookRecipes: React.FC = () => {
             setCookbook(updated);
             setShowEditModal(false);
           }}
+        />
+      )}
+
+      {showDeleteModal && (
+        <DeleteCookbookModal
+          cookbook={cookbook}
+          onClose={() => setShowDeleteModal(false)}
+          onDeleted={() => navigate('/profile')}
         />
       )}
     </div>

@@ -12,7 +12,7 @@ const Profile: React.FC = () => {
   const { user } = useAuth();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [cookbooks, setCookbooks] = useState<Cookbook[]>([]);
-  const [activeTab, setActiveTab] = useState<string>('recipes');
+  const [activeTab, setActiveTab] = useState<string>('cookbooks');
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const refreshCookbooks = async () => {
