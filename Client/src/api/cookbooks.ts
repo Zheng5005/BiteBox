@@ -1,5 +1,5 @@
 import axiosInstance from './axiosInstance';
-import type { Cookbook, Recipe } from '../types';
+import type { Cookbook, CookbookRecipe } from '../types';
 
 interface CookbookRecipeRaw {
   id: string;
@@ -9,6 +9,7 @@ interface CookbookRecipeRaw {
   img_url: string;
   rating: string;
   likes: number;
+  notes: string;
 }
 
 export async function getCookbooks(): Promise<Cookbook[]> {
@@ -41,7 +42,7 @@ export async function removeRecipeFromCookbook(cookbookId: number, recipeId: num
   });
 }
 
-export async function getCookbookRecipes(cookbookId: string): Promise<{ cookbook: Cookbook; recipes: Recipe[] }> {
+export async function getCookbookRecipes(cookbookId: string): Promise<{ cookbook: Cookbook; recipes: CookbookRecipe[] }> {
   const [cookbooksRes, recipesRes] = await Promise.all([
     axiosInstance.get<Cookbook[]>('/cookbooks'),
     axiosInstance.get<CookbookRecipeRaw[]>(`/cookbooks/recipes/${cookbookId}`),
@@ -58,6 +59,7 @@ export async function getCookbookRecipes(cookbookId: string): Promise<{ cookbook
     image: r.img_url,
     rating: Number(r.rating),
     likes: r.likes,
+    notes: r.notes,
   }));
 
   return { cookbook, recipes };

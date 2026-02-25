@@ -33,6 +33,10 @@ export interface MealType {
   name: string;
 }
 
+export interface CookbookRecipe extends Recipe {
+  notes: string;
+}
+
 export interface Cookbook {
   id: number;
   user_id: number;

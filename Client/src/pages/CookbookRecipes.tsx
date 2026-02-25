@@ -1,21 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
 import RecipeCard from '../components/RecipeCard';
+import StickyNote from '../components/StickyNote';
 import EditCookbookModal from '../components/EditCookbookModal';
 import DeleteCookbookModal from '../components/DeleteCookbookModal';
-import type { Recipe, Cookbook } from '../types';
+import type { CookbookRecipe, Cookbook } from '../types';
 import { getCookbookRecipes, removeRecipeFromCookbook } from '../api/cookbooks';
 
 const CookbookRecipes: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [cookbook, setCookbook] = useState<Cookbook | null>(null);
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [recipes, setRecipes] = useState<CookbookRecipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [recipeToRemove, setRecipeToRemove] = useState<Recipe | null>(null);
+  const [recipeToRemove, setRecipeToRemove] = useState<CookbookRecipe | null>(null);
   const [removing, setRemoving] = useState(false);
 
   useEffect(() => {
@@ -105,7 +106,10 @@ const CookbookRecipes: React.FC = () => {
       ) : (
         <div className="grid gap-6">
           {recipes.map((recipe) => (
-            <RecipeCard key={recipe.id} recipe={recipe} onRemove={() => setRecipeToRemove(recipe)} />
+            <div key={recipe.id}>
+              <RecipeCard recipe={recipe} onRemove={() => setRecipeToRemove(recipe)} />
+              <StickyNote note={recipe.notes} />
+            </div>
           ))}
         </div>
       )}

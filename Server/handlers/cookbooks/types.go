@@ -20,6 +20,7 @@ type CookbookRecipe struct {
 	ImgURL      string `json:"img_url"`
 	Rating      string `json:"rating"`
 	Likes       int    `json:"likes"`
+	Notes       string `json:"notes"`
 }
 
 type CookbookHandler struct {

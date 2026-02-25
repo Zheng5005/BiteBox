@@ -277,13 +277,14 @@ func (h *CookbookHandler) GetCookbookRecipes(w http.ResponseWriter, r *http.Requ
 			r.meal_type_id,
 			COALESCE(r.img_url, ''),
 			COALESCE(ROUND(CAST(AVG(c.rating) AS numeric), 2), 0) AS rating,
-			COUNT(DISTINCT rl.id) AS likes
+			COUNT(DISTINCT rl.id) AS likes,
+			COALESCE(cr.notes, '')
 		FROM cookbook_recipes cr
 		JOIN recipes r ON r.id = cr.recipe_id
 		LEFT JOIN comments c ON c.recipe_id = r.id
 		LEFT JOIN recipe_likes rl ON rl.recipe_id = r.id
 		WHERE cr.cookbook_id = $1 AND r.is_active = true
-		GROUP BY r.id`, id)
+		GROUP BY r.id, cr.notes`, id)
 	if err != nil {
 		http.Error(w, "Query error", http.StatusInternalServerError)
 		return
@@ -294,7 +295,7 @@ func (h *CookbookHandler) GetCookbookRecipes(w http.ResponseWriter, r *http.Requ
 
 	for rows.Next() {
 		var cr CookbookRecipe
-		if err := rows.Scan(&cr.ID, &cr.Name, &cr.Description, &cr.MealTypeID, &cr.ImgURL, &cr.Rating, &cr.Likes); err != nil {
+		if err := rows.Scan(&cr.ID, &cr.Name, &cr.Description, &cr.MealTypeID, &cr.ImgURL, &cr.Rating, &cr.Likes, &cr.Notes); err != nil {
 			log.Println(err)
 			http.Error(w, "Scan error", http.StatusInternalServerError)
 			return
