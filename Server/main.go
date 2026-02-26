@@ -8,6 +8,7 @@ import (
 	"github.com/Zheng5005/BiteBox/db"
 	"github.com/Zheng5005/BiteBox/handlers/auth"
 	"github.com/Zheng5005/BiteBox/handlers/comments"
+	"github.com/Zheng5005/BiteBox/handlers/cookbooks"
 	"github.com/Zheng5005/BiteBox/handlers/meals"
 	"github.com/Zheng5005/BiteBox/handlers/recipes"
 	"github.com/Zheng5005/BiteBox/handlers/users"
@@ -25,6 +26,7 @@ func main() {
 	recipesHandler := recipes.NewRecipesHandler(db.DB, secret)
 	authHandler := auth.NewAuthHandler(db.DB, secret)
 	userHandler := users.NewUserHandler(db.DB, secret)
+	cookbookHandler := cookbooks.NewCookbookHandler(db.DB, secret)
 
 	mux := http.NewServeMux()
 
@@ -50,6 +52,16 @@ func main() {
 	// Comments routes
 	mux.HandleFunc("/api/comments/", commentHandler.CommentsHandler)
 	mux.HandleFunc("/api/comments/post/", middleware.JWTMiddleware(commentHandler.PostComment))
+
+	// Cookbooks routes
+	mux.HandleFunc("GET /api/cookbooks", middleware.JWTMiddleware(cookbookHandler.GetCookbooks))
+	mux.HandleFunc("GET /api/cookbooks/", middleware.JWTMiddleware(cookbookHandler.GetCookbook))
+	mux.HandleFunc("POST /api/cookbooks", middleware.JWTMiddleware(cookbookHandler.CreateCookbook))
+	mux.HandleFunc("PATCH /api/cookbooks/edit/", middleware.JWTMiddleware(cookbookHandler.UpdateCookbook))
+	mux.HandleFunc("DELETE /api/cookbooks/delete/", middleware.JWTMiddleware(cookbookHandler.DeleteCookbook))
+	mux.HandleFunc("GET /api/cookbooks/recipes/", middleware.JWTMiddleware(cookbookHandler.GetCookbookRecipes))
+	mux.HandleFunc("POST /api/cookbooks/recipes/add/", middleware.JWTMiddleware(cookbookHandler.AddRecipeToCookbook))
+	mux.HandleFunc("DELETE /api/cookbooks/recipes/remove/", middleware.JWTMiddleware(cookbookHandler.RemoveRecipeFromCookbook))
 
 	// Meals routes
 	mux.HandleFunc("/api/mealtypes", meals.MealsHandler)

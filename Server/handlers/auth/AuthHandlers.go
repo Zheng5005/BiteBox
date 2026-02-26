@@ -57,16 +57,26 @@ func (h *AuthHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Save user to DB
-	_, err = h.DB.Exec(
-		"INSERT INTO users (name, email, password, url_photo) VALUES ($1, $2, $3, $4)",
+	//Save user to DB and get the new user ID
+	var newUserID int
+	err = h.DB.QueryRow(
+		"INSERT INTO users (name, email, password, url_photo) VALUES ($1, $2, $3, $4) RETURNING id",
 		name, email, hashedPassword, imageURL,
-	)
+	).Scan(&newUserID)
 
 	if err != nil {
 		log.Panicln(err)
 		http.Error(w, "Error creating user", http.StatusInternalServerError)
 		return
+	}
+
+	// Create default cookbook for the new user
+	_, err = h.DB.Exec(
+		"INSERT INTO cookbooks (user_id, name, description) VALUES ($1, $2, $3)",
+		newUserID, "My Cookbook", "Your personal recipe collection",
+	)
+	if err != nil {
+		log.Println("Error creating default cookbook:", err)
 	}
 
 	w.WriteHeader(http.StatusCreated)

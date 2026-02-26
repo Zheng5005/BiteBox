@@ -6,6 +6,7 @@ import type { RecipeDetail, Comment } from '../types';
 import { getRecipeById } from '../api/recipes';
 import { getComments, postComment } from '../api/comments';
 import { likeRecipe } from '../api/users';
+import AddToCookbookModal from '../components/AddToCookbookModal';
 
 const RecipeDetails: React.FC = () => {
   const [recipe, setRecipe] = useState<RecipeDetail | null>(null);
@@ -17,6 +18,7 @@ const RecipeDetails: React.FC = () => {
   });
   const [likeLoading, setLikeLoading] = useState(false);
   const [error, setError] = useState<string | null>(null); // State for error handling
+  const [showCookbookModal, setShowCookbookModal] = useState(false);
   const { id } = useParams()
   const { user } = useAuth();
 
@@ -119,16 +121,24 @@ const RecipeDetails: React.FC = () => {
         ) : (
           <div className="text-yellow-500 text-lg">⭐ {recipe.rating}</div>
         )}
-        <div className="flex items-center text-lg">
+        <div className="flex items-center gap-4 text-lg">
           {user ? (
-            <button
-              onClick={handleLike}
-              disabled={likeLoading}
-              className="flex items-center text-red-500 hover:text-red-600 transition cursor-pointer disabled:opacity-50"
-            >
-              <span className="mr-1">❤</span>
-              <span>{recipe.likes ?? 0}</span>
-            </button>
+            <>
+              <button
+                onClick={handleLike}
+                disabled={likeLoading}
+                className="flex items-center text-red-500 hover:text-red-600 transition cursor-pointer disabled:opacity-50"
+              >
+                <span className="mr-1">❤</span>
+                <span>{recipe.likes ?? 0}</span>
+              </button>
+              <button
+                onClick={() => setShowCookbookModal(true)}
+                className="px-3 py-1 text-sm text-green-600 border border-green-600 rounded-md hover:bg-green-50 transition"
+              >
+                📖 Save to Cookbook
+              </button>
+            </>
           ) : (
             <div className="flex items-center text-red-500">
               <span className="mr-1">❤</span>
@@ -225,6 +235,13 @@ const RecipeDetails: React.FC = () => {
             Submit
           </button>
         </form>
+      )}
+
+      {showCookbookModal && recipe && (
+        <AddToCookbookModal
+          recipeId={recipe.id}
+          onClose={() => setShowCookbookModal(false)}
+        />
       )}
     </div>
   );
