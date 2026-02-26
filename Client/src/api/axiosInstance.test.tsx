@@ -25,6 +25,9 @@ describe('API-001: axiosInstance 401 error handling', () => {
     server.use(
       http.get('http://localhost:8080/api/users', () => {
         return new HttpResponse(null, { status: 401 });
+      }),
+      http.get('http://localhost:8080/api/cookbooks', () => {
+        return HttpResponse.json([]);
       })
     );
 
