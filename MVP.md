@@ -15,7 +15,7 @@ The long-term goal is to evolve from a simple recipe finder into a learning syst
 - Users can:
   - Create recipes ✅
   - View recipe details ✅
-  - Like and save recipes
+  - Like ✅ and save recipes ✅
   - (Later) comment ✅ and share
 ### 2. Personalization Engine ("For You" Feed)
 - Available only to authenticated users
@@ -45,7 +45,7 @@ The MVP focuses on validating personalization and retention.
 - User authentication ✅
 - Recipe CRUD ✅
 - Basic feed (chronological or popular) ✅
-- Like / Save interactions
+- Like / Save interactions ✅
 - Interaction tracking for personalization
 - AI Chef v1 (text-only recipe generation)
 
@@ -129,8 +129,8 @@ These metrics directly power personalization.
 ---
 ## Development Roadmap
 ### Phase 1 – Foundation
-- Auth
-- Recipes CRUD
+- Auth ✅
+- Recipes CRUD ✅
 - Basic feed
 - Interaction tracking
 ### Phase 2 – Smart Feed

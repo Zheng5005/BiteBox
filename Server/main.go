@@ -45,6 +45,8 @@ func main() {
 	mux.HandleFunc("GET /api/users/ByGuest", userHandler.GetRecipesByGuestName)
 
 	// Recipes routes
+	mux.HandleFunc("/api/recipes/popular", recipesHandler.GetPopularRecipes)
+	mux.HandleFunc("/api/recipes/recommended", recipesHandler.GetRecommendedRecipes)
 	mux.HandleFunc("/api/recipes", recipesHandler.RecipeHandler)
 	mux.HandleFunc("/api/recipes/", recipesHandler.RecipeONEHandler)
 	mux.HandleFunc("/api/recipes/post", recipesHandler.PostRecipe)

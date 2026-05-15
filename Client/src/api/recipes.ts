@@ -5,6 +5,14 @@ export function getRecipes() {
   return axiosInstance.get<Recipe[]>('/recipes');
 }
 
+export function getPopularRecipes() {
+  return axiosInstance.get<Recipe[]>('/recipes/popular');
+}
+
+export function getRecommendedRecipes() {
+  return axiosInstance.get<Recipe[]>('/recipes/recommended');
+}
+
 export function getRecipeById(id: string) {
   return axiosInstance.get<RecipeDetail>(`/recipes/${id}`);
 }
