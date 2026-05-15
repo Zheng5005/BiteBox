@@ -1,0 +1,25 @@
+project: bitebox
+base_url: /api
+auth: jwt
+
+# Artifact store
+artifact_store: openspec
+
+# Execution mode: interactive | auto
+execution_mode: interactive
+
+# Review budget in changed lines
+review_budget: 600
+
+# Chained PR strategy: auto-forecast | ask-always | single-pr-default | force-chained
+chained_pr_strategy: single-pr-default
+
+# TDD configuration
+strict_tdd: false
+test_command: "go test ./..."
+
+# AI Chef specific
+ai_provider: "gemini" # gemini | openai | anthropic
+ai_model: "gemini-2.0-flash"
+ai_rate_limit: 10 # calls per user per day
+ai_threshold: 3 # minimum catalog results before triggering AI generation

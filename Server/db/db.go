@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -11,12 +12,15 @@ import (
 )
 
 var DB *sql.DB
- 
+
 // DBExecutor allows injecting a mock DB or sql.DB
 type DBExecutor interface {
 	Exec(query string, args ...any) (sql.Result, error)
 	Query(query string, args ...any) (*sql.Rows, error)
 	QueryRow(query string, args ...any) *sql.Row
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
 }
 
 func InitDB() {
@@ -24,7 +28,7 @@ func InitDB() {
 	if errENV != nil {
 		log.Println("No .env file available")
 	}
-	
+
 	connStr := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		getEnv("DB_HOST", "yourHost"),
@@ -54,4 +58,3 @@ func getEnv(key, fallback string) string {
 	}
 	return fallback
 }
-
