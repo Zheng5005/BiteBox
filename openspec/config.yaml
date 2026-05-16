@@ -50,7 +50,7 @@ strict_tdd: false
 test_command: "go test ./..."
 
 # AI Chef specific
-ai_provider: "gemini"  # gemini | openai | anthropic
+ai_provider: "gemini" # gemini | openai | anthropic
 ai_model: "gemini-2.0-flash"
-ai_rate_limit: 10  # calls per user per day
-ai_threshold: 3  # minimum catalog results before triggering AI generation
+ai_rate_limit: 10 # calls per user per day
+ai_threshold: 3 # minimum catalog results before triggering AI generation
