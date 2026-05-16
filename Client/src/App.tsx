@@ -8,34 +8,51 @@ import { AuthProvider } from "./context/AuthContext";
 import PostRecipe from "./pages/PostRecipe";
 import Profile from "./pages/Profile";
 import CookbookRecipes from "./pages/CookbookRecipes";
+import AIChef from "./pages/AIChef";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App: React.FC = () => {
-  return <>
-    <AuthProvider>
-      <Navbar />
-      <Routes >
-        {/* Global */}
-        <Route path="/" element={<MainPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/details/:id" element={<RecipeDetails />} />
-        <Route path="/post" element={<PostRecipe />} />
+	return (
+		<>
+			<AuthProvider>
+				<Navbar />
+				<Routes>
+					{/* Global */}
+					<Route path="/" element={<MainPage />} />
+					<Route path="/login" element={<Login />} />
+					<Route path="/signup" element={<SignUp />} />
+					<Route path="/details/:id" element={<RecipeDetails />} />
+					<Route path="/post" element={<PostRecipe />} />
 
-        {/* Auth Users */}
-        <Route path="/profile" element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        } />
-        <Route path="/cookbook/:id" element={
-          <ProtectedRoute>
-            <CookbookRecipes />
-          </ProtectedRoute>
-        } />
-      </Routes>
-    </AuthProvider>
-  </>
+					{/* Auth Users */}
+					<Route
+						path="/ai-chef"
+						element={
+							<ProtectedRoute>
+								<AIChef />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/profile"
+						element={
+							<ProtectedRoute>
+								<Profile />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/cookbook/:id"
+						element={
+							<ProtectedRoute>
+								<CookbookRecipes />
+							</ProtectedRoute>
+						}
+					/>
+				</Routes>
+			</AuthProvider>
+		</>
+	);
 };
 
 export default App;
