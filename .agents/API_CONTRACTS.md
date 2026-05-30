@@ -4,9 +4,9 @@ Purpose: define **stable, minimal API contracts** between Client and Server for 
 
 Rules:
 
-* Backward-compatible changes only during MVP
-* No undocumented fields
-* Errors are explicit and consistent
+- Backward-compatible changes only during MVP
+- No undocumented fields
+- Errors are explicit and consistent
 
 Base URL: `/api`
 Auth: `Authorization: Bearer <JWT>` (required unless stated)
@@ -39,7 +39,7 @@ Auth: `Authorization: Bearer <JWT>` (required unless stated)
 
 **Errors**
 
-* `401` invalid credentials
+- `401` invalid credentials
 
 ---
 
@@ -75,8 +75,8 @@ Auth: `Authorization: Bearer <JWT>` (required unless stated)
 
 **Query Params**
 
-* `page` (int)
-* `limit` (int)
+- `page` (int)
+- `limit` (int)
 
 **Response 200**
 
@@ -102,7 +102,7 @@ Recipe
 
 **Errors**
 
-* `404` not found or inactive
+- `404` not found or inactive
 
 ---
 
@@ -135,8 +135,8 @@ Recipe
 
 **Rules**
 
-* Only owner
-* Cannot edit inactive recipe
+- Only owner
+- Cannot edit inactive recipe
 
 ---
 
@@ -146,7 +146,7 @@ Recipe
 
 **Rules**
 
-* Soft delete (deactivate)
+- Soft delete (deactivate)
 
 ---
 
@@ -173,8 +173,8 @@ Recipe
 
 **Rules**
 
-* Idempotent per user + recipe + type
-* Anonymous users allowed (no user_id)
+- Idempotent per user + recipe + type
+- Anonymous users allowed (no user_id)
 
 ---
 
@@ -186,8 +186,8 @@ Recipe
 
 **Query Params**
 
-* `page`
-* `limit`
+- `page`
+- `limit`
 
 **Response 200**
 
@@ -201,16 +201,18 @@ Recipe
 
 **Rules**
 
-* Excludes inactive recipes
-* Cold-start fallback applied
+- Excludes inactive recipes
+- Cold-start fallback applied
 
 ---
 
 ## AI Chef (S6)
 
-### POST `/ai/recipes`
+### POST `/api/ai/recipes`
 
 **Auth:** Yes
+
+**Content-Type:** `application/json`
 
 **Request**
 
@@ -218,23 +220,77 @@ Recipe
 {
   "ingredients": ["string"],
   "constraints": {
-    "max_time": "string",
-    "difficulty": "string"
+    "max_time": 30,
+    "difficulty": "easy",
+    "cuisine": "italian"
   }
 }
+```
+
+**Response (SSE streaming):**
+
+```text
+event: catalog_results
+data: {"source":"catalog","recipes":[...],"match_count":3}
+
+event: ai_generation
+data: {"source":"ai","status":"starting"}
+
+event: ai_generation
+data: {"source":"ai","status":"partial","token":"..."}
+
+event: ai_generation
+data: {"source":"ai","status":"complete","recipe":{...}}
+
+event: error
+data: {"error":"...","code":"RATE_LIMITED"|"AI_TIMEOUT"|"INVALID_INPUT"|"INTERNAL_ERROR"}
+```
+
+**Rules**
+
+- Prefer existing recipes (≥ 3 matches → return catalog)
+- AI generation only when < 3 catalog matches
+- Generated recipes persisted with `ai_generated=true`
+- Rate limited: 10 requests/user/day
+- SSE streaming by default; `Accept: application/json` for blocking response
+
+### GET `/api/ai/recipes/{id}`
+
+**Auth:** Optional
+
+**Response 200**
+
+```json
+{
+  "id": "string",
+  "name_recipe": "string",
+  "description": "string",
+  "img_url": "string",
+  "ingredients": [{ "name": "string", "quantity": 1.5, "unit": "cups" }],
+  "steps": [{ "order": 1, "instruction": "string" }],
+  "estimated_minutes": 25,
+  "difficulty": "easy",
+  "cuisine": "italian",
+  "ai_generated": true,
+  "created_at": "iso-date"
+}
+```
+
+### POST `/api/ai/recipes/{id}/feedback`
+
+**Auth:** Yes
+
+**Request**
+
+```json
+{"action": "save" | "discard"}
 ```
 
 **Response 200**
 
 ```json
-Recipe
+{ "status": "ok" }
 ```
-
-**Rules**
-
-* Prefer existing recipes
-* Generated recipes persisted
-* `ai_generated=true`
 
 ---
 
@@ -247,9 +303,7 @@ Recipe
 **Response 200**
 
 ```json
-[
-  { "id": 1, "name": "Breakfast" }
-]
+[{ "id": 1, "name": "Breakfast" }]
 ```
 
 ---
@@ -285,6 +339,6 @@ Recipe
 
 ## Contract Rules for Agents
 
-* Do not change response shapes without updating this file
-* Client must not infer missing fields
-* Server must not return extra fields
+- Do not change response shapes without updating this file
+- Client must not infer missing fields
+- Server must not return extra fields

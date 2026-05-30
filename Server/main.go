@@ -4,14 +4,19 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/Zheng5005/BiteBox/db"
+	"github.com/Zheng5005/BiteBox/handlers/aichef"
 	"github.com/Zheng5005/BiteBox/handlers/auth"
 	"github.com/Zheng5005/BiteBox/handlers/comments"
 	"github.com/Zheng5005/BiteBox/handlers/cookbooks"
 	"github.com/Zheng5005/BiteBox/handlers/meals"
 	"github.com/Zheng5005/BiteBox/handlers/recipes"
 	"github.com/Zheng5005/BiteBox/handlers/users"
+	"github.com/Zheng5005/BiteBox/internal/ai"
+	"github.com/Zheng5005/BiteBox/internal/ratelimit"
+	intRecipes "github.com/Zheng5005/BiteBox/internal/recipes"
 	"github.com/Zheng5005/BiteBox/middlewares"
 )
 
@@ -27,6 +32,13 @@ func main() {
 	authHandler := auth.NewAuthHandler(db.DB, secret)
 	userHandler := users.NewUserHandler(db.DB, secret)
 	cookbookHandler := cookbooks.NewCookbookHandler(db.DB, secret)
+
+	// AI Chef setup
+	aiClient := ai.NewAIClient(os.Getenv("GEMINI_API_KEY"), "gemini-2.0-flash")
+	catalogRepo := intRecipes.NewCatalogRepo(db.DB)
+	rateLimiter := ratelimit.NewRateLimiter(10, 24*time.Hour)
+	rateLimiter.StartCleanup(1 * time.Hour)
+	aiChefHandler := aichef.NewAIChefHandler(catalogRepo, aiClient, rateLimiter, 3)
 
 	mux := http.NewServeMux()
 
@@ -67,6 +79,11 @@ func main() {
 
 	// Meals routes
 	mux.HandleFunc("/api/mealtypes", meals.MealsHandler)
+
+	// AI Chef routes
+	mux.HandleFunc("POST /api/ai/recipes", middleware.JWTMiddleware(aiChefHandler.AiChefHandler))
+	mux.HandleFunc("GET /api/ai/recipes/", aiChefHandler.AiRecipeDetailHandler)
+	mux.HandleFunc("POST /api/ai/recipes/", middleware.JWTMiddleware(aiChefHandler.AiFeedbackHandler))
 
 	// CORS
 	handlerWithCORS := middleware.CorsMiddleware(mux)
